@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOT3S</title>
+
+
+    <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Modernized & Themed Inline CSS -->
+    <style>
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            --border-radius: 6px;
+            --transition-speed: 0.2s;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+            --sidebar-width: 320px;
+        }
+
+        /* Light Theme (Default) */
+        :root, :root[data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7f7f8;
+            --bg-sidebar: #fdfdff;
+            --bg-sidebar-alt: #f5f6fa;
+            --bg-hover: #f0f1f5;
+            --bg-selected: #e7f0ff;
+            --bg-pinned: #fffbeb;
+            --bg-pinned-selected: #fff5d4;
+            --bg-accent-subtle: rgba(66, 133, 244, 0.1);
+            --bg-danger-subtle: rgba(217, 48, 37, 0.08);
+            --bg-warning-subtle: rgba(249, 171, 0, 0.08); /* For general warnings/info */
+            --bg-archive-subtle: rgba(108, 117, 125, 0.08);
+            /* --- Folder Styles --- */
+            --bg-folder-list: var(--bg-sidebar-alt);
+            --bg-folder-item-hover: var(--bg-hover);
+            --bg-folder-item-selected: var(--bg-selected);
+            --border-folder-list: var(--border-secondary);
+            --bg-folder-delete-hover: var(--bg-danger-subtle);
+
+            --text-primary: #202124;
+            --text-secondary: #3c4043;
+            --text-muted: #5f6368;
+            --text-placeholder: #9aa0a6;
+            --text-accent: #4285F4;
+            --text-accent-dark: #1a73e8;
+            --text-danger: #D93025;
+            --text-warning: #b36d00;
+            --text-archive: #6c757d;
+            --text-on-accent: #ffffff;
+            --text-on-danger: #ffffff; /* Text on subtle danger background */
+            --text-on-warning: #613c00; /* Text on subtle warning background */
+            --text-folder: var(--text-secondary);
+            --text-folder-selected: var(--text-accent-dark);
+            --text-folder-delete-hover: var(--text-danger);
+
+
+            --border-primary: #e0e0e2;
+            --border-secondary: #f1f3f4;
+            --border-focus: #a8c7fa;
+            --border-accent: #4285F4;
+            --border-danger: #f6a7a0;
+            --border-warning: #fddaa0;
+
+            --accent-primary: #4285F4;
+            --accent-primary-dark: #1a73e8;
+            --accent-warning: #F9AB00;
+            --accent-danger: #D93025;
+            --accent-archive: #6c757d;
+        }
+
+        /* Dark Theme */
+        :root[data-theme="dark"] {
+            --bg-primary: #202124;
+            --bg-secondary: #17171a;
+            --bg-sidebar: #282a2d;
+            --bg-sidebar-alt: #2d2f33;
+            --bg-hover: #313336;
+            --bg-selected: #2a3a56;
+            --bg-pinned: #443e2c;
+            --bg-pinned-selected: #524a33;
+            --bg-accent-subtle: rgba(138, 180, 248, 0.15);
+            --bg-danger-subtle: rgba(242, 139, 130, 0.15);
+            --bg-warning-subtle: rgba(253, 214, 99, 0.15);
+            --bg-archive-subtle: rgba(154, 160, 166, 0.15);
+            /* --- Folder Styles --- */
+            --bg-folder-list: var(--bg-sidebar-alt);
+            --bg-folder-item-hover: var(--bg-hover);
+            --bg-folder-item-selected: var(--bg-selected);
+            --border-folder-list: var(--border-secondary);
+            --bg-folder-delete-hover: var(--bg-danger-subtle);
+
+            --text-primary: #e8eaed;
+            --text-secondary: #bdc1c6;
+            --text-muted: #9aa0a6;
+            --text-placeholder: #80868b;
+            --text-accent: #8ab4f8;
+            --text-accent-dark: #aecbfa;
+            --text-danger: #f28b82;
+            --text-warning: #fdd663;
+            --text-archive: #bdc1c6;
+            --text-on-accent: #202124;
+            --text-on-danger: #e6b5b1;
+            --text-on-warning: #fde198;
+            --text-folder: var(--text-secondary);
+            --text-folder-selected: var(--text-accent);
+            --text-folder-delete-hover: var(--text-danger);
+
+            --border-primary: #3c4043;
+            --border-secondary: #2d2f33;
+            --border-focus: #6c91d8;
+            --border-accent: #8ab4f8;
+            --border-danger: #5c3532;
+            --border-warning: #614a1b;
+
+            --accent-primary: #8ab4f8;
+            --accent-primary-dark: #aecbfa;
+            --accent-warning: #fdd663;
+            --accent-danger: #f28b82;
+            --accent-archive: #9aa0a6;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: var(--font-family);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 15px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+        }
+
+        #root { display: flex; flex: 1; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* --- Global Message/Error Display --- */
+        .message-box {
+            padding: 0.75rem 1.25rem;
+            margin: 0.5rem 0;
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            border: 1px solid transparent;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color var(--transition-speed) ease, opacity 0.3s ease, height 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+            opacity: 1;
+            height: auto; /* Allow height based on content */
+            overflow: hidden; /* Prevent content spill during transition */
+        }
+        .message-box:not([role="alert"]) { /* Style adjustment if not showing message */
+            opacity: 0;
+            margin: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border: none;
+            height: 0; /* Collapse when empty */
+        }
+
+        .message-box.error {
+            background-color: var(--bg-danger-subtle);
+            color: var(--text-danger);
+            border-color: var(--border-danger);
+        }
+        .message-box.warning { /* For general info/warnings */
+            background-color: var(--bg-warning-subtle);
+            color: var(--text-warning);
+            border-color: var(--border-warning);
+        }
+        .message-box i { font-size: 1rem; line-height: 1; }
+
+        /* --- Loading & Auth --- */
+        .spinner { border: 4px solid rgba(128,128,128,0.2); width: 36px; height: 36px; border-radius: 50%; border-left-color: var(--accent-primary); animation: spin 1s linear infinite; margin: 2rem auto; }
+        .spinner.inline { display: inline-block; width: 16px; height: 16px; border-width: 2px; margin: 0 0 0 0.5em; vertical-align: middle; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .auth-container { background-color: var(--bg-primary); padding: 2.5rem 3rem; border-radius: var(--border-radius); box-shadow: var(--shadow-lg); width: 100%; max-width: 420px; text-align: center; border: 1px solid var(--border-secondary); }
+        .auth-container h2 { margin-top: 0; margin-bottom: 1.5rem; color: var(--text-primary); font-weight: 600; }
+        /* Adjust auth message box margin */
+        .auth-container .message-box { margin-bottom: 1rem; margin-top: -0.5rem; text-align: left; } /* Keep role="alert" */
+        .auth-container input { width: 100%; padding: 0.85rem 1rem; margin-bottom: 1.2rem; border: 1px solid var(--border-primary); border-radius: var(--border-radius); font-size: 1rem; transition: border-color 0.2s ease, box-shadow 0.2s ease; background-color: var(--bg-primary); color: var(--text-primary); }
+        .auth-container input::placeholder { color: var(--text-placeholder); }
+        .auth-container input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--bg-accent-subtle); outline: none; }
+        .auth-container button[type="submit"] { width: 100%; padding: 0.9rem 1rem; background-color: var(--accent-primary); color: var(--text-on-accent); border: none; border-radius: var(--border-radius); cursor: pointer; font-size: 1rem; font-weight: 500; transition: background-color 0.2s ease, box-shadow 0.2s ease; margin-bottom: 1.2rem; display: inline-flex; justify-content: center; align-items: center; gap: 0.5rem; }
+        .auth-container button[type="submit"]:hover:not(:disabled) { background-color: var(--text-accent-dark); box-shadow: var(--shadow-sm); }
+        .auth-container button:disabled { opacity: 0.65; cursor: not-allowed; }
+        .auth-container .toggle-auth { background: none; border: none; color: var(--text-accent); cursor: pointer; font-size: 0.9rem; padding: 0.5rem; }
+        .auth-container .toggle-auth:hover { text-decoration: underline; }
+        /* Removed separate loading indicator div, integrated spinner into button */
+
+        /* --- App Container --- */
+        .app-container { display: flex; width: 100%; height: 100%; align-items: stretch; }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-secondary);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex-shrink: 0;
+            transition: width var(--transition-speed) ease, background-color var(--transition-speed) ease;
+            z-index: 10;
+        }
+        .sidebar-header {
+            padding: 0.9rem 1.25rem;
+            border-bottom: 1px solid var(--border-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-shrink: 0;
+            min-height: 56px; /* Match editor header */
+        }
+        .sidebar-header h2 { margin: 0; font-size: 1.15rem; font-weight: 600; display: flex; align-items: center; gap: 0.6rem; color: var(--text-secondary); }
+        .sidebar-header h2 i { color: var(--text-accent); font-size: 1.4rem; }
+        .header-actions { display: flex; align-items: center; gap: 0.3rem; }
+        .header-actions button {
+            background: transparent; border: none; cursor: pointer; font-size: 1rem;
+            padding: 0.5rem; color: var(--text-muted); border-radius: 50%;
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease, opacity var(--transition-speed) ease; line-height: 1;
+        }
+        .header-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .header-actions button:hover:not(:disabled) { color: var(--text-primary); background-color: var(--bg-hover); }
+        .header-actions .add-note-btn:hover:not(:disabled) { color: var(--text-accent-dark); background-color: var(--bg-accent-subtle); }
+        .header-actions .logout-btn:hover:not(:disabled) { color: var(--text-danger); background-color: var(--bg-danger-subtle); }
+        .theme-toggle-btn i { transition: transform 0.3s ease; }
+        :root[data-theme="dark"] .theme-toggle-btn i { transform: rotate(180deg); }
+
+        /* --- Folder Section --- */
+        .folder-section {
+            flex-shrink: 0;
+            background-color: var(--bg-folder-list);
+            border-bottom: 1px solid var(--border-folder-list);
+            max-height: 25vh; /* Limit height, make scrollable */
+            display: flex;
+            flex-direction: column;
+        }
+        .folder-section-header {
+            padding: 0.5rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-folder-list);
+        }
+        .folder-section-header h3 {
+            margin: 0; font-size: 0.8rem; font-weight: 600;
+            color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .add-folder-btn {
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            font-size: 0.9rem; padding: 0.2rem; border-radius: 4px; line-height: 1;
+            transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+        }
+        .add-folder-btn:hover:not(:disabled) { color: var(--text-accent-dark); background-color: var(--bg-accent-subtle); }
+        .add-folder-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .folder-list {
+            overflow-y: auto; padding: 0.25rem 0;
+            scrollbar-width: thin; scrollbar-color: var(--border-primary) transparent;
+        }
+        .folder-list::-webkit-scrollbar { width: 6px; }
+        .folder-list::-webkit-scrollbar-track { background: transparent; }
+        .folder-list::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 3px; }
+        .folder-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .folder-list .list-message { padding: 0.8rem 1.25rem; text-align: center; color: var(--text-muted); font-style: italic; font-size: 0.85rem; }
+
+        .folder-item {
+            padding: 0.5rem 0.75rem 0.5rem 1.25rem; /* Adjust right padding */
+            cursor: pointer;
+            display: flex; align-items: center; gap: 0.6rem;
+            font-size: 0.9rem; font-weight: 500; color: var(--text-folder);
+            border-left: 3px solid transparent; /* For selected indication */
+            transition: background-color 0.1s ease, color 0.1s ease, border-left-color 0.1s ease;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            position: relative; /* Needed for absolute positioning of delete button */
+        }
+        .folder-item i { width: 16px; text-align: center; color: var(--text-muted); font-size: 0.9em; }
+        .folder-item:hover { background-color: var(--bg-folder-item-hover); }
+        .folder-item.selected {
+            background-color: var(--bg-folder-item-selected);
+            color: var(--text-folder-selected);
+            border-left-color: var(--text-accent);
+        }
+        .folder-item.selected i { color: var(--text-folder-selected); }
+        .folder-item .folder-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; margin-right: 24px; /* Make space for delete button */ }
+        .folder-delete-btn {
+             position: absolute;
+             top: 50%;
+             right: 0.6rem;
+             transform: translateY(-50%);
+             background: transparent;
+             border: none;
+             color: var(--text-muted);
+             cursor: pointer;
+             font-size: 0.8rem; /* Smaller icon */
+             padding: 0.3rem;
+             line-height: 1;
+             border-radius: 50%;
+             width: 24px; /* Smaller button */
+             height: 24px;
+             display: none; /* Hidden by default */
+             align-items: center;
+             justify-content: center;
+             transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease;
+             z-index: 2; /* Above folder name */
+         }
+         .folder-item:hover .folder-delete-btn {
+             display: inline-flex; /* Show on hover */
+         }
+         .folder-delete-btn:hover:not(:disabled) {
+             color: var(--text-folder-delete-hover);
+             background-color: var(--bg-folder-delete-hover);
+         }
+         .folder-delete-btn:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+              color: var(--text-muted) !important; /* Keep color muted */
+              background-color: transparent !important; /* No background when disabled */
+         }
+
+
+        /* Sidebar Controls (Filters) */
+        .sidebar-controls {
+            padding: 0.8rem 1.25rem;
+            border-bottom: 1px solid var(--border-secondary);
+            flex-shrink: 0;
+            background-color: var(--bg-sidebar-alt); /* Keep same as folders maybe? */
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .search-input, .filter-select {
+            width: 100%; padding: 0.6rem 0.9rem; box-sizing: border-box;
+            border-radius: var(--border-radius); border: 1px solid var(--border-primary);
+            font-size: 0.875rem; background-color: var(--bg-primary); color: var(--text-primary);
+            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+        }
+        .search-input::placeholder { color: var(--text-placeholder); }
+        .search-input:focus, .filter-select:focus {
+             border-color: var(--border-focus);
+             box-shadow: 0 0 0 3px var(--bg-accent-subtle);
+             outline: none;
+        }
+        .filter-select {
+             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235f6368' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+             background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 16px 12px;
+             padding-right: 2.5rem; cursor: pointer;
+        }
+        :root[data-theme="dark"] .filter-select {
+             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%239aa0a6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+         }
+        .filter-select:disabled { background-color: var(--bg-hover); opacity: 0.7; cursor: not-allowed; }
+        .filter-select option { background-color: var(--bg-primary); color: var(--text-primary); }
+        .note-count-display {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding-top: 0.4rem;
+        }
+
+
+        /* Note List */
+        .note-list-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        /* Place error message area above the list */
+        .sidebar-message-area { padding: 0 0.75rem; flex-shrink: 0; min-height: 1px; /* Ensure space even if empty */}
+        .note-list { flex-grow: 1; overflow-y: auto; padding: 0.25rem 0; }
+        .note-list::-webkit-scrollbar { width: 6px; }
+        .note-list::-webkit-scrollbar-track { background: transparent; }
+        .note-list::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 3px; }
+        .note-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        .note-list .list-message { padding: 1.5rem 1.25rem; text-align: center; color: var(--text-muted); font-style: italic; }
+        /* Specific error message style handled by .message-box.error */
+
+        .note-item {
+            padding: 0.8rem 1.25rem; cursor: pointer; border-bottom: 1px solid var(--border-secondary);
+            position: relative; transition: background-color 0.1s ease; display: flex; flex-direction: column; gap: 0.25rem;
+        }
+        .note-item:last-child { border-bottom: none; }
+        .note-item:hover { background-color: var(--bg-hover); }
+        .note-item.selected { background-color: var(--bg-selected); }
+        .note-item.selected:hover { background-color: var(--bg-selected); /* Don't change hover on selected */ }
+        .note-item.pinned { background-color: var(--bg-pinned); border-left: 3px solid var(--accent-warning); padding-left: calc(1.25rem - 3px); }
+        .note-item.pinned:hover { background-color: var(--bg-pinned); filter: brightness(98%); }
+        .note-item.pinned.selected { background-color: var(--bg-pinned-selected); }
+        .note-item.pinned.selected:hover { background-color: var(--bg-pinned-selected); }
+        .note-item.archived { opacity: 0.7; }
+        .note-item.archived .note-item-title { font-style: italic; }
+
+
+        .note-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+        .note-item-title { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.95rem; flex-grow: 1; color: var(--text-secondary); transition: color var(--transition-speed) ease; }
+        .note-item.selected .note-item-title, .note-item:hover .note-item-title { color: var(--text-primary); }
+
+        .note-item-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 0.2rem; margin-bottom: 0.1rem; }
+        .note-item-date { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+
+        .note-item-preview { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; line-height: 1.4; }
+
+        .note-item-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+        .tag-badge { background-color: var(--bg-hover); color: var(--text-muted); padding: 0.1rem 0.5rem; border-radius: var(--border-radius); font-size: 0.7rem; font-weight: 500; line-height: 1.3; transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease; }
+        .note-item.pinned .tag-badge { background-color: rgba(249, 171, 0, 0.15); color: var(--text-warning); }
+        .note-item.selected .tag-badge { background-color: var(--bg-accent-subtle); color: var(--text-accent-dark); }
+        .note-item.pinned.selected .tag-badge { background-color: rgba(249, 171, 0, 0.2); color: var(--text-warning); }
+
+        .note-item-actions {
+            display: flex; align-items: center; opacity: 0; position: absolute; top: 0.5rem; right: 0.6rem;
+            /* Adjusted background for better visibility */
+            background: linear-gradient(to left, var(--bg-hover) 60%, transparent 100%);
+            padding: 0.2rem 0.3rem 0.2rem 1rem; border-radius: var(--border-radius) 0 0 var(--border-radius); /* Slight rounding */
+            transition: opacity 0.15s ease, background-color var(--transition-speed) ease; /* Added background transition */
+            pointer-events: none;
+        }
+        .note-item:hover .note-item-actions, .note-item.selected .note-item-actions { opacity: 1; background-color: var(--bg-hover); pointer-events: auto; box-shadow: var(--shadow-sm); }
+        .note-item.pinned:hover .note-item-actions, .note-item.pinned.selected .note-item-actions { background-color: var(--bg-pinned); filter: brightness(98%); }
+        .note-item.selected:not(.pinned) .note-item-actions { background-color: var(--bg-selected); }
+        /* Archived hover action background */
+        .note-item.archived:hover .note-item-actions { background-color: var(--bg-hover); }
+
+        .note-action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 0.3rem; margin-left: 0.3rem; line-height: 1; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; justify-content: center; align-items: center; transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease, opacity var(--transition-speed) ease; }
+        .note-action-btn:disabled { opacity: 0.4; cursor: not-allowed; background-color: transparent !important; color: var(--text-muted) !important; filter: none !important; }
+        .note-action-btn:hover:not(:disabled) { color: var(--text-primary); background-color: rgba(128,128,128,0.15); }
+        .pin-btn { color: var(--accent-warning); }
+        .pin-btn.pinned:hover:not(:disabled) { filter: brightness(1.1); }
+        .pin-btn.unpinned { color: var(--text-muted); }
+        .pin-btn.unpinned:hover:not(:disabled) { color: var(--accent-warning); background-color: rgba(249, 171, 0, 0.1); }
+        .delete-note-btn:hover:not(:disabled) { color: var(--text-danger); background-color: var(--bg-danger-subtle); }
+        .archive-btn { color: var(--text-archive); }
+        .archive-btn:hover:not(:disabled) { background-color: var(--bg-archive-subtle); filter: brightness(1.05); }
+
+
+        /* --- Editor Area (View & Edit Modes) --- */
+        .editor-area { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-primary); overflow: hidden; transition: background-color var(--transition-speed) ease; }
+        .editor-placeholder { display: flex; flex-direction: column; justify-content: center; align-items: center; flex-grow: 1; color: var(--text-muted); font-size: 1.1rem; text-align: center; padding: 2rem; }
+        .editor-placeholder i { font-size: 3rem; margin-bottom: 1rem; color: var(--border-primary); transition: color var(--transition-speed) ease; }
+        .editor-placeholder button { /* Style for button in placeholder */
+             margin-top: 1.5rem;
+             background-color: var(--bg-hover);
+             color: var(--text-secondary);
+             border: 1px solid var(--border-primary);
+             padding: 0.5rem 1.2rem;
+             font-size: 0.9rem;
+             font-weight: 500;
+             border-radius: var(--border-radius);
+             cursor: pointer;
+             transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, opacity var(--transition-speed) ease;
+             display: flex;
+             align-items: center;
+             gap: 0.5rem;
+        }
+         .editor-placeholder button:hover:not(:disabled) { background-color: var(--border-primary); }
+         .editor-placeholder button:disabled { opacity: 0.6; cursor: not-allowed; }
+         /* Specific style for the unarchive button in placeholder */
+         .editor-placeholder .unarchive-placeholder-btn {
+             background: var(--bg-archive-subtle);
+             color: var(--text-archive);
+             border-color: var(--border-secondary);
+         }
+         .editor-placeholder .unarchive-placeholder-btn:hover:not(:disabled) {
+              background: var(--bg-archive-subtle); /* Keep subtle background */
+              filter: brightness(1.1); /* Slight brighten */
+              color: var(--text-archive);
+         }
+
+        .editor-header {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            align-items: center;
+            padding: 0.75rem 2.5rem 0.75rem; /* Adjusted padding for balance */
+            flex-shrink: 0;
+            min-height: 56px; /* Consistent height */
+            border-bottom: 1px solid var(--border-secondary);
+            background-color: var(--bg-secondary); /* Match sidebar header bg */
+        }
+        .editor-header-button {
+            background-color: var(--accent-primary);
+            color: var(--text-on-accent);
+            border: none;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, opacity var(--transition-speed) ease;
+             display: flex;
+             align-items: center;
+             gap: 0.4rem;
+        }
+        .editor-header-button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .editor-header-button:hover:not(:disabled) { background-color: var(--accent-primary-dark); box-shadow: var(--shadow-sm); }
+        .editor-header-button.view-mode-btn { /* Style for "View" button */
+            background-color: var(--bg-hover);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary); /* Subtle border */
+            padding: calc(0.4rem - 1px) calc(1rem - 1px); /* Adjust padding for border */
+        }
+        .editor-header-button.view-mode-btn:hover:not(:disabled) { background-color: var(--border-primary); }
+
+        /* Note Viewer Styles */
+        .note-viewer-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem 2.5rem 2rem; /* Increased top padding */
+            scrollbar-width: thin; scrollbar-color: var(--border-primary) transparent;
+        }
+        .note-viewer-container::-webkit-scrollbar { width: 8px; }
+        .note-viewer-container::-webkit-scrollbar-track { background: transparent; }
+        .note-viewer-container::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 4px; border: 2px solid var(--bg-primary); }
+        .note-viewer-container::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .note-viewer-title {
+            font-size: 1.8rem; font-weight: 600; color: var(--text-primary);
+            margin: 0.5rem 0 1rem 0; line-height: 1.3;
+        }
+        .note-viewer-meta { /* Container for folder/tags in view mode */
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column; /* Stack folder and tags */
+            gap: 0.75rem;
+        }
+        .note-viewer-folder { /* Style for showing folder name */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .note-viewer-folder i { font-size: 1rem; width: 16px; text-align: center; }
+        .note-viewer-folder span { font-style: italic; }
+        .note-viewer-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; /* Reset margin */ }
+        .note-viewer-tags .tag-badge { background-color: var(--bg-hover); } /* Use same badge style */
+
+
+        .note-viewer-content {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            word-wrap: break-word;
+        }
+        /* Styles for Quill generated elements in viewer */
+        .note-viewer-content h1, .note-viewer-content h2, .note-viewer-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: var(--text-primary); font-weight: 600; }
+        .note-viewer-content h1 { font-size: 1.6em; } .note-viewer-content h2 { font-size: 1.4em; } .note-viewer-content h3 { font-size: 1.2em; }
+        .note-viewer-content p { margin-bottom: 1em; }
+        .note-viewer-content a { color: var(--text-accent); text-decoration: none; }
+        .note-viewer-content a:hover { text-decoration: underline; }
+        .note-viewer-content blockquote { border-left: 3px solid var(--border-primary); margin-left: 0; margin-right: 0; padding-left: 1em; color: var(--text-muted); font-style: italic; }
+        .note-viewer-content pre { background-color: var(--bg-sidebar-alt); padding: 1em; border-radius: var(--border-radius); overflow-x: auto; font-family: monospace; font-size: 0.9em; color: var(--text-secondary); }
+        .note-viewer-content ul, .note-viewer-content ol { padding-left: 1.5em; margin-bottom: 1em; }
+        .note-viewer-content li { margin-bottom: 0.3em; }
+        .note-viewer-content li[data-list="checked"]::before { /* Style checked items (Quill handles this visually) */ }
+        .note-viewer-content li[data-list="unchecked"]::before { /* Style unchecked items (Quill handles this visually) */ }
+        .note-viewer-content .ql-indent-1 { margin-left: 2em; }
+        .note-viewer-content .ql-indent-2 { margin-left: 4em; }
+
+
+        /* Editor Styles (when active) */
+        .editor-container { display: flex; flex-direction: column; flex-grow: 1; height: 100%; /* Let content define height */ padding: 0 2.5rem; /* Padding only horizontal */ overflow: hidden; }
+        .editor-main-content { flex-grow: 1; display: flex; flex-direction: column; padding-top: 1.5rem; } /* Add padding here */
+        .editor-footer { flex-shrink: 0; padding: 0.5rem 0; text-align: right; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-secondary); margin-top: 0.5rem; }
+
+        .note-title-input {
+            font-size: 1.8rem; font-weight: 600; border: none; outline: none;
+            padding: 0.25rem 0 0.75rem 0; width: 100%; box-sizing: border-box;
+            border-bottom: 1px solid transparent; margin-bottom: 0.8rem; background-color: transparent;
+            flex-shrink: 0; transition: border-color var(--transition-speed) ease; color: var(--text-primary);
+        }
+        .note-title-input:focus { border-bottom-color: var(--border-secondary); }
+        .note-title-input::placeholder { color: var(--text-placeholder); font-weight: 500; }
+
+        /* Container for Folder and Tags Editor Inputs */
+        .editor-meta-inputs {
+            display: flex; flex-direction: column; gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-top: 1px solid var(--border-secondary);
+            border-bottom: 1px solid var(--border-secondary);
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .folder-editor, .tags-editor {
+             display: flex; align-items: center; gap: 0.6rem;
+        }
+        .folder-editor label, .tags-editor label {
+            font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1;
+            display: inline-flex; align-items: center; gap: 0.3rem; width: 24px; /* Align icon vertically */
+            justify-content: center;
+        }
+        .folder-editor label i, .tags-editor label i { font-size: 1rem; line-height: 1; }
+        .tags-input, .folder-select {
+            font-size: 0.85rem; border: none; outline: none; padding: 0.2rem 0;
+            background: transparent; flex-grow: 1; color: var(--text-secondary);
+            transition: color var(--transition-speed) ease;
+        }
+        .tags-input:focus, .folder-select:focus { color: var(--text-primary); }
+        .tags-input::placeholder { color: var(--text-placeholder); font-style: italic; }
+
+        .folder-select { /* Style select like the input */
+             -webkit-appearance: none; -moz-appearance: none; appearance: none;
+             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%235f6368' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+             background-repeat: no-repeat; background-position: right 0 center; background-size: 16px 12px;
+             padding-right: 1.8rem; cursor: pointer;
+        }
+         :root[data-theme="dark"] .folder-select {
+             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%239aa0a6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+         }
+        .folder-select:disabled { opacity: 0.6; cursor: not-allowed; background-image: none; }
+        .folder-select option { background-color: var(--bg-primary); color: var(--text-primary); }
+
+
+        .quill-editor-wrapper { flex-grow: 1; display: flex; flex-direction: column; border: none; border-radius: 0; overflow: hidden; min-height: 250px; background-color: transparent; margin-top: 0rem; /* Reduced margin as meta inputs have margin */ position: relative; }
+        .ql-toolbar { background-color: transparent; border: none !important; border-bottom: 1px solid var(--border-secondary) !important; padding: 8px 0 !important; flex-shrink: 0; margin-left: -5px; transition: border-color var(--transition-speed) ease; }
+        .ql-toolbar .ql-stroke { stroke: var(--text-muted); transition: stroke var(--transition-speed) ease; }
+        .ql-toolbar .ql-fill { fill: var(--text-muted); transition: fill var(--transition-speed) ease; }
+        .ql-toolbar button:hover .ql-stroke, .ql-toolbar .ql-picker-label:hover .ql-stroke { stroke: var(--text-primary); }
+        .ql-toolbar button:hover .ql-fill, .ql-toolbar .ql-picker-label:hover .ql-fill { fill: var(--text-primary); }
+        .ql-toolbar .ql-active .ql-stroke { stroke: var(--text-accent); }
+        .ql-toolbar .ql-active .ql-fill { fill: var(--text-accent); }
+
+        .ql-container { flex-grow: 1; font-size: 1rem; line-height: 1.7; border: none !important; overflow-y: auto; height: auto; /* Let content push height */ scrollbar-width: thin; scrollbar-color: var(--border-primary) transparent; transition: color var(--transition-speed) ease; }
+        .ql-container::-webkit-scrollbar { width: 8px; }
+        .ql-container::-webkit-scrollbar-track { background: transparent; }
+        .ql-container::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 4px; border: 2px solid var(--bg-primary); }
+        .ql-container::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .ql-editor { /* Removed fixed height, let flex grow handle it */ padding: 1rem 0 !important; background-color: transparent; color: var(--text-primary); caret-color: var(--text-accent); overflow-y: visible; /* Important for auto height */ min-height: 150px; transition: color var(--transition-speed) ease, caret-color var(--transition-speed) ease; }
+        .ql-editor.ql-blank::before{ color: var(--text-placeholder); font-style: normal; left: 0 !important; right: 0 !important; font-size: 1rem; transition: color var(--transition-speed) ease; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            :root { --sidebar-width: 100%; }
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: 45vh; min-height: 300px; border-right: none; border-bottom: 1px solid var(--border-primary); z-index: 5; }
+            /* Adjust sidebar layout on mobile */
+            .folder-section { max-height: 30%; /* Allow a bit more space for folders */ }
+            .folder-section-header { padding: 0.4rem 1rem; }
+            .folder-item { padding: 0.4rem 1rem; font-size: 0.85rem; }
+            .folder-item .folder-name { margin-right: 28px; /* Adjust spacing for delete button on mobile */ }
+             .folder-delete-btn { right: 0.8rem; width: 28px; height: 28px; font-size: 0.9rem; } /* Slightly larger tap target */
+            .sidebar-controls { padding: 0.6rem 1rem; gap: 0.5rem; }
+            .sidebar-header { padding: 0.8rem 1rem; min-height: 56px;}
+            /* Mobile NoteList height needs to account for header, folders, controls, messages */
+            .note-list-container { height: auto; /* Let it fill remaining space dynamically */ }
+
+            .note-item { padding: 0.7rem 1rem; }
+            .note-item.pinned { padding-left: calc(1rem - 3px); }
+            .note-item-actions { opacity: 1; background: transparent !important; box-shadow: none; pointer-events: auto; position: static; padding: 0.3rem 0 0; justify-content: flex-end; }
+            .note-action-btn { margin-left: 0.5rem; }
+
+            .editor-area { height: 55vh; min-height: 300px; overflow-y: auto; } /* Add scroll back for mobile */
+             .editor-header { padding: 0.5rem 1rem; min-height: 48px; }
+             .editor-header-button { padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+            .note-viewer-container { padding: 1rem 1.25rem 1.5rem; }
+            .editor-container { padding: 0 1.25rem; } /* Horizontal padding */
+             .editor-main-content { padding-top: 1rem; }
+            .note-viewer-title, .note-title-input { font-size: 1.5rem; }
+             .editor-meta-inputs { padding: 0.5rem 0; gap: 0.5rem; margin-bottom: 0.8rem; }
+             .folder-editor label, .tags-editor label { font-size: 0.8rem; width: 20px; }
+             .tags-input, .folder-select { font-size: 0.8rem; }
+            .ql-toolbar { margin-left: 0; padding: 6px 0 !important; }
+            .ql-editor { padding: 0.8rem 0 !important; min-height: 100px; }
+            .editor-footer { padding: 0.4rem 0; font-size: 0.75rem; }
+            .auth-container { padding: 2rem 1.5rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="root">
+         <div class="spinner"></div>
+         <p style="color: var(--text-muted);">Loading NOT3S...</p>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+        // --- Firebase Config & Init ---
+        // IMPORTANT: Replace with your actual Firebase configuration!
+        const firebaseConfig = {
+          apiKey: "AIzaSyDzQewhAZ4BmscFDBDZ9Y_7JTwwPbtjed4",
+          authDomain: "not3s-8eeff.firebaseapp.com",
+          projectId: "not3s-8eeff",
+          storageBucket: "not3s-8eeff.firebasestorage.app",
+          messagingSenderId: "611480027818",
+          appId: "1:611480027818:web:3a2f695fa2a2c3c610c6d3",
+          measurementId: "G-9T4R11NZD8"
+        };
+        let firebaseApp;
+        try {
+            // Prevent multiple initializations
+            if (!firebase.apps.length) {
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                console.log("Firebase Initialized");
+            } else {
+                firebaseApp = firebase.app(); // if already initialized, use that one
+                console.log("Firebase Re-used");
+            }
+        } catch (e) {
+             console.error("Firebase initialization error:", e);
+             document.getElementById('root').innerHTML = `
+                 <div style="color: var(--text-danger); padding: 2rem; text-align: center; max-width: 500px; margin: auto; background: var(--bg-primary); border-radius: var(--border-radius); box-shadow: var(--shadow-md);">
+                     <h2><i class="fa-solid fa-triangle-exclamation"></i> Initialization Error</h2>
+                     <p>Could not connect to the backend services required for Sleek Notes.</p>
+                     <p>Please check your internet connection and ensure the Firebase configuration is correct in the HTML source.</p>
+                     <p style="font-size: 0.8em; color: var(--text-muted);"><i>Details: ${e.message}</i></p>
+                 </div>`;
+        }
+        const auth = firebaseApp ? firebase.auth() : null;
+        const db = firebaseApp ? firebase.firestore() : null;
+        const { serverTimestamp } = firebaseApp ? firebase.firestore.FieldValue : { serverTimestamp: () => new Date() }; // Fallback for serverTimestamp if init fails
+
+        // --- Constants ---
+        const FOLDER_ID_ALL = 'all'; // Special ID for viewing all notes
+        const FOLDER_ID_UNCATEGORIZED = 'uncategorized'; // Special ID for uncategorized notes
+
+
+        // --- Hooks & Utils ---
+        function useDebounce(value, delay) {
+            const [debouncedValue, setDebouncedValue] = useState(value);
+            useEffect(() => {
+                const handler = setTimeout(() => { setDebouncedValue(value); }, delay);
+                return () => { clearTimeout(handler); };
+            }, [value, delay]);
+            return debouncedValue;
+        }
+        const isToday = (ts) => {
+            if (!ts) return false;
+            const today = new Date();
+            const date = new Date(ts);
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        };
+        const isWithinLastDays = (ts, days) => {
+            if (!ts) return false;
+            const now = new Date();
+            const date = new Date(ts);
+            const cutoff = new Date();
+            cutoff.setDate(now.getDate() - days);
+            cutoff.setHours(0, 0, 0, 0);
+            return date >= cutoff && date <= now;
+        };
+        const formatDate = (ts) => {
+             if (!ts) return 'No date';
+            const date = new Date(ts);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (isToday(ts)) {
+                return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            } else if (diffDays <= 7 && date.getFullYear() === now.getFullYear()) {
+                 // Show day and time if within the last 7 days and in the current year
+                return date.toLocaleTimeString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+            } else {
+                 // Show full date otherwise
+                return date.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+            }
+        };
+
+        // --- Theme Utility ---
+        const applyTheme = (theme) => {
+          document.documentElement.setAttribute('data-theme', theme);
+          localStorage.setItem('notes-theme', theme);
+        };
+        const getInitialTheme = () => {
+          const storedTheme = localStorage.getItem('notes-theme');
+          if (storedTheme) return storedTheme;
+          // Optional: Check system preference
+          // const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          // return prefersDark ? 'dark' : 'light';
+          return 'light'; // Default to light
+        };
+
+        // --- Helper Functions ---
+        const mapAuthCodeToMessage = (errorCode) => {
+          switch (errorCode) {
+            case 'auth/invalid-email': return 'Please enter a valid email address.';
+            case 'auth/user-disabled': return 'This user account has been disabled.';
+            case 'auth/user-not-found': return 'No account found with this email. Please sign up or check the email address.';
+            case 'auth/wrong-password': return 'Incorrect password. Please try again.';
+            case 'auth/email-already-in-use': return 'An account already exists with this email address. Please login or use a different email.';
+            case 'auth/weak-password': return 'Password is too weak. It should be at least 6 characters long.';
+            case 'auth/network-request-failed': return 'Network error. Please check your internet connection.';
+            case 'auth/too-many-requests': return 'Access temporarily disabled due to too many failed login attempts. Please try again later.';
+            default: return 'An unknown authentication error occurred. Please try again.';
+          }
+        };
+
+
+        // --- Components ---
+        function LoadingSpinner({ message = "Loading...", inline = false }) {
+             return (
+                 <div style={{ textAlign: 'center', padding: inline ? '0' : '2rem', color: 'var(--text-muted)' }}>
+                     <div className={`spinner ${inline ? 'inline' : ''}`}></div>
+                     {!inline && <p>{message}</p>}
+                 </div>
+             );
+        }
+
+        // --- Message Box Component ---
+        function MessageBox({ type = "warning", message, iconClass = "fa-solid fa-circle-info" }) {
+            if (!message) return <div className="message-box"></div>; // Render empty but styled div for transition
+            let actualIconClass = iconClass;
+            if (type === "error") actualIconClass = "fa-solid fa-circle-exclamation";
+
+            return (
+                <div className={`message-box ${type}`} role="alert" aria-live="polite">
+                    <i className={actualIconClass}></i>
+                    <span>{message}</span>
+                </div>
+            );
+        }
+
+        function AuthScreen({ initialError = null }) {
+            const [isLogin, setIsLogin] = useState(true);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(initialError); // Use initialError prop
+
+            useEffect(() => {
+                 // Clear error when switching forms
+                 setError(initialError); // Reset to initial or null
+            }, [isLogin, initialError]);
+
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!auth) { // Check if auth is initialized
+                     setError("Authentication service is unavailable. Please check configuration.");
+                     return;
+                }
+                setLoading(true);
+                setError('');
+                try {
+                    if (isLogin) {
+                        await auth.signInWithEmailAndPassword(email, password);
+                    } else {
+                        if (password.length < 6) {
+                           // Use a specific error code mimicry for mapping
+                           throw { code: 'auth/weak-password' };
+                        }
+                        await auth.createUserWithEmailAndPassword(email, password);
+                    }
+                    // Auth state change will trigger App re-render
+                } catch (err) {
+                    console.error("Auth Error:", err);
+                    // Use the mapping function
+                    setError(mapAuthCodeToMessage(err.code || 'unknown'));
+                    setLoading(false);
+                }
+                // No need for finally here, loading is set to false only on error
+            };
+
+            return (
+                <div className="auth-container">
+                    <h2>{isLogin ? 'Login to Sleek Notes' : 'Sign Up for Sleek Notes'}</h2>
+                    {/* Display Auth Error */}
+                    <MessageBox type="error" message={error} />
+
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            type="email" placeholder="Email" value={email}
+                            onChange={(e) => setEmail(e.target.value)} required aria-label="Email"
+                            disabled={loading}
+                        />
+                        <input
+                            type="password" placeholder="Password" value={password}
+                            onChange={(e) => setPassword(e.target.value)} required aria-label="Password"
+                            disabled={loading}
+                        />
+                        <button type="submit" disabled={loading || !email || !password}>
+                            {isLogin ? 'Login' : 'Sign Up'}
+                            {loading && <LoadingSpinner inline={true} />}
+                        </button>
+                    </form>
+                    <button className="toggle-auth" onClick={() => setIsLogin(!isLogin)} disabled={loading}>
+                        {isLogin ? 'Need an account? Sign Up' : 'Have an account? Login'}
+                    </button>
+                </div>
+            );
+        }
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [loadingAuth, setLoadingAuth] = useState(true);
+            const [authError, setAuthError] = useState(null); // Specific state for auth state change errors
+            const [theme, setTheme] = useState(getInitialTheme);
+
+            useEffect(() => {
+                // Apply initial theme
+                applyTheme(theme);
+            }, [theme]); // Only re-run if theme state changes (which it won't initially)
+
+            useEffect(() => {
+                // Check if Firebase was initialized
+                 if (!auth || !db) {
+                     setLoadingAuth(false);
+                     // Error is already displayed by the init block
+                     return () => {}; // Return empty cleanup
+                 }
+
+                const unsub = auth.onAuthStateChanged(
+                    u => { setUser(u); setLoadingAuth(false); setAuthError(null); },
+                    err => { // Handle critical auth state errors (e.g., token revoked, backend issue)
+                        console.error("Auth State Error:", err);
+                        setUser(null); // Log out user on critical error
+                        setLoadingAuth(false);
+                        setAuthError("Authentication session error. Please log in again."); // Generic error for state issues
+                    }
+                );
+                return unsub;
+            }, []); // Empty dependency array, runs once on mount
+
+            const toggleTheme = useCallback(() => {
+                setTheme(prev => {
+                    const newTheme = prev === 'light' ? 'dark' : 'light';
+                    applyTheme(newTheme); // Apply immediately
+                    return newTheme;
+                });
+            }, []);
+
+            if (loadingAuth) return <LoadingSpinner message="Authenticating..." />;
+
+            // If Firebase failed to init, #root is already replaced.
+            if (!auth || !db) return null;
+
+            // If there was an auth state error, force login screen with the error
+            if (authError && !user) {
+                 return <AuthScreen initialError={authError} />;
+            }
+
+            return user
+                ? <NotesDashboard key={user.uid} user={user} currentTheme={theme} toggleTheme={toggleTheme} />
+                : <AuthScreen />; // Show login if no user and no specific auth state error
+        }
+
+        function NotesDashboard({ user, currentTheme, toggleTheme }) {
+            const [allActiveNotes, setAllActiveNotes] = useState([]); // Holds ALL active notes from Firestore
+            const [folders, setFolders] = useState([]); // Holds user's folders
+            const [selectedNoteId, setSelectedNoteId] = useState(null);
+            const [selectedFolderId, setSelectedFolderId] = useState(FOLDER_ID_ALL); // Default to 'all'
+            const [loadingNotes, setLoadingNotes] = useState(true);
+            const [loadingFolders, setLoadingFolders] = useState(true);
+            const [errorState, setErrorState] = useState({ notes: null, folders: null }); // Combined error state
+            const [isEditing, setIsEditing] = useState(false);
+            const [shouldFocusTitle, setShouldFocusTitle] = useState(false); // For focusing title on add
+            const [actionInProgress, setActionInProgress] = useState(null); // Tracks ongoing async actions
+
+            // Firestore collection references (memoized)
+            const notesCollectionRef = useMemo(() => db.collection('users').doc(user.uid).collection('notes'), [user.uid]);
+            const foldersCollectionRef = useMemo(() => db.collection('users').doc(user.uid).collection('folders'), [user.uid]);
+
+            // Combined loading state
+            const isLoading = loadingNotes || loadingFolders;
+
+            // Helper to update error state
+            const setError = useCallback((type, message) => {
+                 console.log(`Setting error [${type}]:`, message); // Debugging
+                 setErrorState(prev => ({ ...prev, [type]: message }));
+            }, []);
+            const clearError = useCallback((type) => {
+                 setErrorState(prev => ({ ...prev, [type]: null }));
+            }, []);
+             // Global error message to display (prioritize notes error)
+            const globalError = errorState.notes || errorState.folders;
+
+
+            // Fetch ALL Active Notes Effect
+            useEffect(() => {
+                setLoadingNotes(true);
+                clearError('notes');
+                const query = notesCollectionRef
+                    .where('archived', '==', false)
+                    // Note: We fetch ALL active notes, filtering by folder happens client-side
+                    // Sorting remains crucial for display order within folders/all view
+                    .orderBy('pinned', 'desc')
+                    .orderBy('lastModified', 'desc');
+
+                const unsubscribe = query.onSnapshot(snapshot => {
+                    console.log("[NotesDashboard Effect] ALL Active notes snapshot RECEIVED"); // DEBUG
+                    const fetchedNotes = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data(),
+                        lastModified: doc.data().lastModified?.toDate?.().getTime?.()
+                                      ?? doc.data().createdAt?.toDate?.().getTime?.()
+                                      ?? Date.now(),
+                        folderId: doc.data().folderId || null // Ensure folderId is present, default to null
+                    }));
+                    setAllActiveNotes(fetchedNotes);
+                    setLoadingNotes(false);
+                }, err => {
+                    console.error("[NotesDashboard Effect] Error fetching ALL active notes: ", err); // DEBUG
+                    setError('notes', `Could not load notes: ${err.message}. Try refreshing.`);
+                    setLoadingNotes(false);
+                });
+                return unsubscribe;
+            }, [notesCollectionRef, clearError, setError]); // Dependencies
+
+            // Fetch Folders Effect
+            useEffect(() => {
+                setLoadingFolders(true);
+                clearError('folders');
+                const query = foldersCollectionRef.orderBy('name', 'asc'); // Order folders alphabetically
+
+                const unsubscribe = query.onSnapshot(snapshot => {
+                    console.log("[NotesDashboard Effect] Folders snapshot RECEIVED"); // DEBUG
+                    const fetchedFolders = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setFolders(fetchedFolders);
+                    setLoadingFolders(false);
+                }, err => {
+                    console.error("[NotesDashboard Effect] Error fetching folders: ", err); // DEBUG
+                    setError('folders', `Could not load folders: ${err.message}. Try refreshing.`);
+                    setLoadingFolders(false);
+                });
+                return unsubscribe;
+            }, [foldersCollectionRef, clearError, setError]); // Dependencies
+
+            // Filter Active Notes Based on Selected Folder (Client-Side)
+            const notesForSidebar = useMemo(() => {
+                 if (selectedFolderId === FOLDER_ID_ALL) {
+                    return allActiveNotes; // Show all active notes
+                 } else if (selectedFolderId === FOLDER_ID_UNCATEGORIZED) {
+                    // Filter for notes with no folderId or null/undefined folderId
+                    return allActiveNotes.filter(note => !note.folderId);
+                 } else {
+                    // Filter for notes matching the specific folder ID
+                    return allActiveNotes.filter(note => note.folderId === selectedFolderId);
+                 }
+            }, [allActiveNotes, selectedFolderId]);
+
+
+            // Select Note Logic (Handles Deletion/Archival/Folder Change/Initial Load/Deselection)
+             useEffect(() => {
+                 if (loadingNotes) return; // Don't run if notes are still loading
+
+                 const currentNoteExistsInView = selectedNoteId
+                     ? notesForSidebar.some(n => n.id === selectedNoteId)
+                     : false;
+
+                 if (selectedNoteId && !currentNoteExistsInView) {
+                     // Selected note was removed from the current view (deleted, archived, or moved to another folder)
+                     setSelectedNoteId(null);
+                     setIsEditing(false);
+                 } else if (notesForSidebar.length === 0 && selectedFolderId !== FOLDER_ID_ALL) {
+                     // Current folder view is empty (but maybe 'All Notes' is not)
+                     // Keep selection if it exists in `allActiveNotes`, otherwise clear.
+                     const selectedNoteStillExists = allActiveNotes.some(n => n.id === selectedNoteId);
+                     if (!selectedNoteStillExists) {
+                         setSelectedNoteId(null);
+                         setIsEditing(false);
+                     }
+                 } else if (allActiveNotes.length === 0) {
+                      // No active notes exist at all, clear selection
+                      setSelectedNoteId(null);
+                      setIsEditing(false);
+                 }
+                 // Reset focus flag whenever selection might change or notes reload
+                 setShouldFocusTitle(false);
+
+             }, [notesForSidebar, allActiveNotes, loadingNotes, selectedFolderId, selectedNoteId]); // Re-run when view changes
+
+            // --- Handler Functions ---
+            const handleAddNote = useCallback(async () => {
+                clearError('notes');
+                setActionInProgress('add-note');
+                // Determine folderId for the new note
+                const folderIdForNewNote = (selectedFolderId && selectedFolderId !== FOLDER_ID_ALL && selectedFolderId !== FOLDER_ID_UNCATEGORIZED)
+                    ? selectedFolderId
+                    : null; // Assign to current folder, or null if 'All' or 'Uncategorized' selected
+
+                try {
+                    const newNoteRef = await notesCollectionRef.add({
+                        title: "Untitled Note",
+                        content: "<p><br></p>", // Start with an empty paragraph for Quill
+                        tags: [],
+                        pinned: false,
+                        archived: false,
+                        folderId: folderIdForNewNote, // Set the folderId
+                        createdAt: serverTimestamp(),
+                        lastModified: serverTimestamp()
+                    });
+                    // If the new note belongs to the current view, select it
+                    if (selectedFolderId === FOLDER_ID_ALL ||
+                        (selectedFolderId === FOLDER_ID_UNCATEGORIZED && !folderIdForNewNote) ||
+                        selectedFolderId === folderIdForNewNote)
+                    {
+                         setSelectedNoteId(newNoteRef.id);
+                         setIsEditing(true);
+                         setShouldFocusTitle(true); // Signal to focus title input
+                    } else {
+                        // Note was added to a *different* folder than currently viewed.
+                        // Optionally, switch to that folder or 'All Notes'? For now, just don't select it.
+                         console.log(`Note added to folder ${folderIdForNewNote || 'Uncategorized'}, but current view is ${selectedFolderId}`);
+                    }
+                } catch (error) {
+                    console.error("Error adding note:", error);
+                    setError('notes', `Failed to create note: ${error.message}`);
+                } finally {
+                    setActionInProgress(null);
+                }
+            }, [notesCollectionRef, selectedFolderId, clearError, setError]);
+
+             const handleAddFolder = useCallback(async () => {
+                clearError('folders');
+                const folderName = prompt("Enter new folder name:");
+                if (!folderName || folderName.trim() === '') {
+                    return; // User cancelled or entered empty name
+                }
+                setActionInProgress('add-folder');
+                try {
+                     // Check if folder name already exists (case-insensitive check)
+                     const existingFolder = folders.find(f => f.name.toLowerCase() === folderName.trim().toLowerCase());
+                     if (existingFolder) {
+                         throw new Error(`Folder "${folderName.trim()}" already exists.`);
+                     }
+
+                    const newFolderRef = await foldersCollectionRef.add({
+                        name: folderName.trim(),
+                        createdAt: serverTimestamp()
+                    });
+                    // Optional: Automatically select the new folder?
+                    // setSelectedFolderId(newFolderRef.id);
+                } catch (error) {
+                    console.error("Error adding folder:", error);
+                    setError('folders', `Failed to create folder: ${error.message}`);
+                } finally {
+                    setActionInProgress(null);
+                }
+             }, [foldersCollectionRef, folders, clearError, setError]);
+
+             const handleDeleteNote = useCallback(async (noteIdToDelete) => {
+                // Find note for confirmation message (check active and archive cache)
+                const allKnownNotes = [...allActiveNotes, ...(window.archivedNotesCache || [])];
+                const noteToDelete = allKnownNotes.find(n => n.id === noteIdToDelete);
+                const noteTitle = noteToDelete?.title || 'this note';
+
+                if (!window.confirm(`Permanently delete "${noteTitle}"?\n\nThis action cannot be undone.`)) {
+                    return; // User cancelled
+                }
+
+                clearError('notes');
+                setActionInProgress(`delete-${noteIdToDelete}`);
+                 try {
+                     await notesCollectionRef.doc(noteIdToDelete).delete();
+                     // Selection logic useEffect will handle deselecting if the deleted note was selected.
+                 } catch (error) {
+                     console.error("Error deleting note:", error);
+                     setError('notes', `Failed to delete note: ${error.message}`);
+                 } finally {
+                    setActionInProgress(null);
+                 }
+             }, [notesCollectionRef, allActiveNotes, clearError, setError]);
+
+             // *** NEW: Handler for deleting a folder ***
+             const handleDeleteFolder = useCallback(async (folderId, folderName) => {
+                 if (!folderId || !folderName) return;
+
+                 if (!window.confirm(`Delete folder "${folderName}"?\n\nNotes inside this folder will become "Uncategorized". This action cannot be undone.`)) {
+                     return; // User cancelled
+                 }
+
+                 clearError('folders');
+                 clearError('notes'); // Clear note errors too, in case update fails
+                 setActionInProgress(`delete-folder-${folderId}`);
+
+                 try {
+                     // Use a batch write to update notes and delete folder atomically
+                     const batch = db.batch();
+
+                     // 1. Find notes belonging to the folder
+                     const notesToUpdateQuery = notesCollectionRef.where('folderId', '==', folderId);
+                     const notesSnapshot = await notesToUpdateQuery.get();
+
+                     // 2. Add update operations for each note to the batch
+                     notesSnapshot.forEach(doc => {
+                         batch.update(notesCollectionRef.doc(doc.id), { folderId: null });
+                     });
+
+                     // 3. Add the folder delete operation to the batch
+                     const folderRef = foldersCollectionRef.doc(folderId);
+                     batch.delete(folderRef);
+
+                     // 4. Commit the batch
+                     await batch.commit();
+                     console.log(`Folder "${folderName}" and its note references deleted successfully.`);
+
+                     // If the deleted folder was selected, switch view to "All Notes"
+                     if (selectedFolderId === folderId) {
+                         setSelectedFolderId(FOLDER_ID_ALL);
+                         // Deselect note as well? Good practice when folder context changes drastically.
+                         setSelectedNoteId(null);
+                         setIsEditing(false);
+                     }
+
+                 } catch (error) {
+                     console.error(`Error deleting folder "${folderName}" (ID: ${folderId}):`, error);
+                     setError('folders', `Failed to delete folder: ${error.message}`);
+                 } finally {
+                     setActionInProgress(null);
+                 }
+             }, [db, notesCollectionRef, foldersCollectionRef, selectedFolderId, clearError, setError]); // Added db dependency for batch
+
+            const handleUpdateNote = useCallback(async (updatePayload, operationType = 'update') => {
+                 const noteIdToUpdate = updatePayload.id || selectedNoteId;
+                 if (!noteIdToUpdate) {
+                     console.warn("handleUpdateNote called without a note ID.");
+                     return;
+                 }
+
+                 setActionInProgress(`${operationType}-${noteIdToUpdate}`);
+                 const { id, ...dataToUpdate } = updatePayload; // Exclude ID from data
+
+                 try {
+                     // Ensure folderId is either a string or null, not undefined
+                     if (dataToUpdate.hasOwnProperty('folderId') && typeof dataToUpdate.folderId === 'undefined') {
+                         dataToUpdate.folderId = null;
+                     }
+
+                     await notesCollectionRef.doc(noteIdToUpdate).update({
+                         ...dataToUpdate,
+                         lastModified: serverTimestamp() // Always update timestamp
+                     });
+                     clearError('notes'); // Clear error on successful update
+                 } catch (error) {
+                     console.error(`Error ${operationType} note (${noteIdToUpdate}):`, error);
+                     setError('notes', `Failed to ${operationType.replace('-', ' ')} note: ${error.message}`);
+                 } finally {
+                    setActionInProgress(null);
+                 }
+            }, [selectedNoteId, notesCollectionRef, clearError, setError]);
+
+            const handleArchiveToggle = useCallback(async (noteToToggle) => {
+                 if (!noteToToggle || !noteToToggle.id) return;
+                 const isArchiving = !noteToToggle.archived;
+                 const actionType = isArchiving ? 'archive' : 'unarchive';
+
+                 await handleUpdateNote({
+                     id: noteToToggle.id,
+                     archived: isArchiving,
+                     pinned: isArchiving ? false : noteToToggle.pinned // Unpin when archiving
+                  }, actionType);
+
+                 // If the toggled note was selected AND we are archiving it, deselect it.
+                 if (isArchiving && noteToToggle.id === selectedNoteId) {
+                      setSelectedNoteId(null);
+                      setIsEditing(false);
+                 }
+                // Snapshot listeners will handle moving the note between active/archived lists.
+             }, [handleUpdateNote, selectedNoteId]);
+
+            // Modified handleSelectNote to handle null for deselection
+            const handleSelectNote = useCallback((noteId) => { // noteId can be string or null
+                 // If the clicked ID is the same as the currently selected one, pass null to deselect.
+                 // Otherwise, pass the clicked ID to select.
+                 const newSelectedId = noteId === selectedNoteId ? null : noteId;
+                 setSelectedNoteId(newSelectedId);
+                 setIsEditing(false); // Always view mode on new selection or deselection
+                 clearError('notes'); // Clear errors when selecting/deselecting
+                 setShouldFocusTitle(false);
+            }, [selectedNoteId, clearError]); // Dependency is only selectedNoteId and clearError
+
+            // Handler for selecting a folder from the sidebar
+            const handleSelectFolder = useCallback((folderId) => {
+                if (folderId !== selectedFolderId) {
+                    setSelectedFolderId(folderId);
+                    // Deselect note when changing folder? Optional, maybe better UX
+                    // setSelectedNoteId(null);
+                    // setIsEditing(false);
+                    clearError('notes'); // Clear potential note-related errors
+                }
+            }, [selectedFolderId, clearError]);
+
+            const handleLogout = useCallback(async () => {
+                clearError('notes');
+                clearError('folders');
+                 setActionInProgress('logout');
+                try {
+                    await auth.signOut();
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    setError('notes', `Logout failed: ${error.message}`); // Use notes error for general auth issues
+                    setActionInProgress(null);
+                }
+            }, [clearError, setError]);
+
+            // Find the selected note from ALL active notes (memoized)
+            const selectedNote = useMemo(() => allActiveNotes.find(note => note.id === selectedNoteId), [allActiveNotes, selectedNoteId]);
+
+            // Find the name of the selected note's folder
+             const selectedNoteFolderName = useMemo(() => {
+                 if (selectedNote?.folderId) {
+                     const folder = folders.find(f => f.id === selectedNote.folderId);
+                     return folder?.name || "Unknown Folder"; // Handle case where folder might be deleted
+                 }
+                 return null; // No folder assigned
+             }, [selectedNote, folders]);
+
+            return (
+                <div className="app-container">
+                    <Sidebar
+                        // Data
+                        notes={notesForSidebar} // Pass notes filtered for the current folder view
+                        folders={folders}
+                        selectedNoteId={selectedNoteId}
+                        selectedFolderId={selectedFolderId}
+                        loading={isLoading} // Combined loading state
+                        error={globalError} // Pass combined error state down
+                        currentTheme={currentTheme}
+                        notesCollectionRef={notesCollectionRef} // Keep for archive fetch
+                        actionInProgress={actionInProgress} // Pass action state
+                        // Callbacks
+                        onAddNote={handleAddNote}
+                        onAddFolder={handleAddFolder}
+                        onDeleteNote={handleDeleteNote}
+                        onDeleteFolder={handleDeleteFolder} // Pass new handler
+                        onArchiveToggle={handleArchiveToggle}
+                        onSelectNote={handleSelectNote} // Passed down
+                        onSelectFolder={handleSelectFolder}
+                        onUpdateNote={handleUpdateNote}
+                        onLogout={handleLogout}
+                        toggleTheme={toggleTheme}
+                        setErrorNotes={(msg) => setError('notes', msg)} // Allow sidebar (e.g., archive fetch) to set note errors
+                        setErrorFolders={(msg) => setError('folders', msg)} // Allow sidebar to set folder errors
+                        clearErrorNotes={() => clearError('notes')} // Allow sidebar to clear note errors
+                        clearErrorFolders={() => clearError('folders')} // Allow sidebar to clear folder errors
+                    />
+                    <EditorArea
+                        key={selectedNoteId || 'placeholder'} // Re-render on note change
+                        note={selectedNote} // Pass the potentially selected note (can be null/undefined)
+                        folders={folders} // Pass folders for the editor dropdown
+                        selectedNoteFolderName={selectedNoteFolderName} // Pass folder name for viewer
+                        onUpdateNote={handleUpdateNote}
+                        onArchiveToggle={handleArchiveToggle}
+                        loading={loadingNotes && !selectedNoteId} // Show loading only if notes loading and none selected
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        shouldFocusTitle={shouldFocusTitle}
+                        actionInProgress={actionInProgress}
+                    />
+                </div>
+            );
+        }
+
+        function Sidebar({
+            notes, folders, selectedNoteId, selectedFolderId, loading, error, currentTheme, notesCollectionRef, actionInProgress,
+            onAddNote, onAddFolder, onDeleteNote, onDeleteFolder, onArchiveToggle, onSelectNote, onSelectFolder, onUpdateNote, onLogout, toggleTheme,
+            setErrorNotes, setErrorFolders, clearErrorNotes, clearErrorFolders // Added folder error handlers
+        }) {
+             const [searchTerm, setSearchTerm] = useState("");
+             const [dateFilter, setDateFilter] = useState("all");
+             const [tagFilter, setTagFilter] = useState("");
+             const [archiveFilter, setArchiveFilter] = useState("active"); // 'active' or 'archived'
+             const [archivedNotes, setArchivedNotes] = useState([]); // Holds fetched archived notes
+             const [loadingArchived, setLoadingArchived] = useState(false);
+             const [sidebarError, setSidebarError] = useState(null); // Specific errors for this sidebar (e.g., archive fetch)
+
+             const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+             // Effect to clear local sidebar errors if the global error is cleared
+             useEffect(() => {
+                 if (!error) {
+                    setSidebarError(null);
+                 }
+             }, [error]);
+
+             // Fetch Archived Notes Effect when filter changes to 'archived'
+             useEffect(() => {
+                 let unsubscribe = () => {};
+                 const updateCache = (notes) => { window.archivedNotesCache = notes; }; // Cache for delete confirmation
+
+                 if (archiveFilter === 'archived') {
+                     setLoadingArchived(true);
+                     setSidebarError(null);
+                     clearErrorNotes(); // Clear global note errors when switching filters
+                     clearErrorFolders(); // Clear folder errors too
+                     onSelectFolder(FOLDER_ID_ALL); // Reset folder selection when viewing archive
+                     console.log("[Sidebar Effect] Fetching archived notes...");
+                     const query = notesCollectionRef
+                         .where('archived', '==', true)
+                         .orderBy('lastModified', 'desc');
+
+                     unsubscribe = query.onSnapshot(snapshot => {
+                         console.log("[Sidebar Effect] Archived notes snapshot RECEIVED");
+                         const fetched = snapshot.docs.map(doc => ({
+                             id: doc.id,
+                             ...doc.data(),
+                             lastModified: doc.data().lastModified?.toDate?.().getTime?.()
+                                           ?? doc.data().createdAt?.toDate?.().getTime?.()
+                                           ?? Date.now()
+                         }));
+                         setArchivedNotes(fetched);
+                         setLoadingArchived(false);
+                         updateCache(fetched);
+                     }, err => {
+                         console.error("[Sidebar Effect] Error fetching archived notes:", err);
+                         if (err.code === 'failed-precondition' && err.message.includes('index')) {
+                             setSidebarError(`Firestore index missing for archived notes. Please create it.`);
+                         } else {
+                             setSidebarError(`Could not load archived notes: ${err.message}`);
+                         }
+                         setErrorNotes(`Could not load archived notes: ${err.message}`); // Also set global error
+                         setLoadingArchived(false);
+                         updateCache([]);
+                     });
+                 } else {
+                     // Switching back to active notes view
+                     console.log("[Sidebar Effect] Switched to active notes view.");
+                     setArchivedNotes([]);
+                     setLoadingArchived(false);
+                     updateCache([]);
+                     if (sidebarError) setSidebarError(null); // Clear local archive error
+                     // Global errors are cleared by the main dashboard effect
+                 }
+                 return () => {
+                     console.log("[Sidebar Effect] Cleanup listener for archive filter.");
+                     unsubscribe();
+                     updateCache([]);
+                 };
+             }, [archiveFilter, notesCollectionRef, setErrorNotes, clearErrorNotes, clearErrorFolders, onSelectFolder]); // Added clearErrorFolders
+
+            // Determine the source of notes based on the archive filter
+             // If viewing archived, use archivedNotes. If viewing active, use the 'notes' prop (which is already folder-filtered)
+            const notesSource = useMemo(() => (archiveFilter === 'archived' ? archivedNotes : notes), [archiveFilter, notes, archivedNotes]);
+            const isLoadingSource = useMemo(() => (archiveFilter === 'archived' ? loadingArchived : loading), [archiveFilter, loadingArchived, loading]);
+
+            // Get unique tags from the *currently visible* notes (active folder or all archived)
+            const uniqueTags = useMemo(() => {
+                const tagsSet = new Set();
+                notesSource.forEach(note => {
+                    note.tags?.forEach(tag => tagsSet.add(tag));
+                });
+                return Array.from(tagsSet).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+             }, [notesSource]);
+
+            const getPreview = useCallback((content) => {
+                 if (!content) return 'No content';
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                let text = (tempDiv.textContent || tempDiv.innerText || "").replace(/\s+/g, ' ').trim();
+                const maxLength = 80;
+                if (!text) return '...';
+                return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+             }, []);
+
+            // Combined Filtering Logic (applies to notesSource: active folder notes OR all archived notes)
+            const filteredNotes = useMemo(() => {
+                 let intermediateNotes = notesSource;
+
+                 // Filter by Date
+                 if (dateFilter !== 'all') {
+                    intermediateNotes = intermediateNotes.filter(note => {
+                        if (!note.lastModified) return false;
+                        switch (dateFilter) {
+                            case 'today': return isToday(note.lastModified);
+                            case 'last7': return isWithinLastDays(note.lastModified, 7);
+                            case 'last30': return isWithinLastDays(note.lastModified, 30);
+                            default: return true;
+                        }
+                    });
+                 }
+                 // Filter by Tag
+                 if (tagFilter) {
+                    intermediateNotes = intermediateNotes.filter(note => note.tags?.includes(tagFilter));
+                 }
+                 // Filter by Search Term
+                 if (debouncedSearchTerm) {
+                    const lowerSearch = debouncedSearchTerm.toLowerCase();
+                    intermediateNotes = intermediateNotes.filter(note =>
+                        note.title?.toLowerCase().includes(lowerSearch) ||
+                        getPreview(note.content)?.toLowerCase().includes(lowerSearch) ||
+                        note.tags?.some(tag => tag.toLowerCase().includes(lowerSearch))
+                    );
+                 }
+                 return intermediateNotes;
+             }, [notesSource, dateFilter, tagFilter, debouncedSearchTerm, getPreview]);
+
+             // Note Count Display Logic
+             const noteCountText = useMemo(() => {
+                if (isLoadingSource) return "Loading...";
+                const count = filteredNotes.length;
+                const totalSourceCount = notesSource.length;
+                const type = archiveFilter === 'archived' ? 'Archived' : 'Notes'; // Be generic for 'Notes' as it could be all/folder/uncategorized
+
+                let context = "";
+                 if (archiveFilter === 'active') {
+                    if (selectedFolderId === FOLDER_ID_ALL) context = "All";
+                    else if (selectedFolderId === FOLDER_ID_UNCATEGORIZED) context = "Uncategorized";
+                    else {
+                        const folder = folders.find(f => f.id === selectedFolderId);
+                        context = folder ? `in "${folder.name}"` : "in folder";
+                    }
+                 } else {
+                    context = "Archived"; // Context for archived notes
+                 }
+
+                const areFiltersActive = debouncedSearchTerm || tagFilter || (dateFilter !== 'all' && archiveFilter === 'active'); // Date filter doesn't apply to archive view for count display
+
+                 if (totalSourceCount === 0) {
+                     return `No ${context.toLowerCase()} notes`;
+                 } else if (count === 0 && areFiltersActive) {
+                     return `0 matching notes ${context === 'All' || context === 'Archived' ? '' : context}`; // Don't repeat context if "All" or "Archived"
+                 } else if (count === 0 && !areFiltersActive) {
+                     return `No notes ${context === 'All' || context === 'Archived' ? '' : context}`;
+                 } else {
+                     const filterText = areFiltersActive ? ' matching' : '';
+                     return `${count}${filterText} ${type === 'Notes' ? `note${count === 1 ? '' : 's'}` : type} ${context === 'All' || context === 'Archived' ? '' : context}`;
+                 }
+
+             }, [filteredNotes.length, notesSource.length, isLoadingSource, archiveFilter, selectedFolderId, folders, debouncedSearchTerm, tagFilter, dateFilter]);
+
+
+             // Event Handlers passed down to Note Items
+             const handlePinClick = useCallback((note, e) => {
+                 e.stopPropagation();
+                 onUpdateNote({ id: note.id, pinned: !note.pinned }, 'pin');
+             }, [onUpdateNote]);
+
+             const handleDeleteClick = useCallback((noteId, e) => {
+                 e.stopPropagation();
+                 onDeleteNote(noteId);
+             }, [onDeleteNote]);
+
+             const handleArchiveClick = useCallback((note, e) => {
+                 e.stopPropagation();
+                 onArchiveToggle(note);
+             }, [onArchiveToggle]);
+
+            // Click handler for note item (toggle selection)
+            const handleNoteItemClick = useCallback((noteId) => {
+                 // Call the parent's onSelectNote, passing null if the clicked note
+                 // is already selected, otherwise passing the clicked note's ID.
+                 onSelectNote(noteId); // Parent now handles the toggle logic
+             }, [onSelectNote]); // Only depends on the callback itself
+
+            return (
+                <div className="sidebar">
+                    <div className="sidebar-header">
+                        <h2><i className="fa-solid fa-book-journal-whills"></i> NOT3S</h2>
+                        <div className="header-actions">
+                            <button className="theme-toggle-btn" title={`Switch to ${currentTheme === 'light' ? 'Dark' : 'Light'} Theme`} onClick={toggleTheme} aria-label="Toggle theme" disabled={!!actionInProgress}>
+                                <i className={`fa-solid ${currentTheme === 'light' ? 'fa-moon' : 'fa-sun'}`}></i>
+                            </button>
+                             {/* Only allow adding notes if not viewing archive */}
+                             <button className="add-note-btn" title="Add New Note" onClick={onAddNote} aria-label="Add new note" disabled={!!actionInProgress || archiveFilter === 'archived'}>
+                                <i className="fa-solid fa-plus"></i>
+                            </button>
+                            <button title="Logout" className="logout-btn" onClick={onLogout} aria-label="Logout" disabled={!!actionInProgress}>
+                                <i className="fa-solid fa-arrow-right-from-bracket"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* --- Folder Section --- */}
+                    <div className="folder-section">
+                         <div className="folder-section-header">
+                            <h3>Folders</h3>
+                             {/* Disable adding folder if viewing archive */}
+                             <button className="add-folder-btn" title="Add New Folder" onClick={onAddFolder} disabled={!!actionInProgress || archiveFilter === 'archived'}>
+                                 <i className="fa-solid fa-folder-plus"></i>
+                            </button>
+                        </div>
+                         <div className="folder-list">
+                             {loading && !folders.length ? ( // Show loading only if truly loading initial folders
+                                 <LoadingSpinner message="Loading Folders..." inline={true}/>
+                             ) : (
+                                 <>
+                                     {/* Special Items */}
+                                     <div
+                                         className={`folder-item ${selectedFolderId === FOLDER_ID_ALL ? 'selected' : ''}`}
+                                         onClick={() => !actionInProgress && onSelectFolder(FOLDER_ID_ALL)}
+                                         role="button" tabIndex={0}
+                                         title="Show all active notes"
+                                         aria-pressed={selectedFolderId === FOLDER_ID_ALL}
+                                         style={{ opacity: archiveFilter === 'archived' ? 0.5 : 1, pointerEvents: archiveFilter === 'archived' ? 'none' : 'auto' }} // Disable when viewing archive
+                                     >
+                                         <i className="fa-solid fa-inbox"></i>
+                                         <span className="folder-name">All Notes</span>
+                                     </div>
+                                     <div
+                                         className={`folder-item ${selectedFolderId === FOLDER_ID_UNCATEGORIZED ? 'selected' : ''}`}
+                                         onClick={() => !actionInProgress && onSelectFolder(FOLDER_ID_UNCATEGORIZED)}
+                                         role="button" tabIndex={0}
+                                         title="Show notes not in any folder"
+                                         aria-pressed={selectedFolderId === FOLDER_ID_UNCATEGORIZED}
+                                         style={{ opacity: archiveFilter === 'archived' ? 0.5 : 1, pointerEvents: archiveFilter === 'archived' ? 'none' : 'auto' }} // Disable when viewing archive
+                                     >
+                                         <i className="fa-regular fa-folder"></i>
+                                          <span className="folder-name">Uncategorized</span>
+                                      </div>
+
+                                     {/* User Folders */}
+                                     {folders.map(folder => {
+                                         const disableFolderActions = !!actionInProgress || archiveFilter === 'archived';
+                                         return (
+                                             <div
+                                                 key={folder.id}
+                                                 className={`folder-item ${selectedFolderId === folder.id ? 'selected' : ''}`}
+                                                 onClick={() => !disableFolderActions && onSelectFolder(folder.id)}
+                                                 role="button" tabIndex={disableFolderActions ? -1 : 0} // Make non-interactive when disabled
+                                                 title={folder.name}
+                                                 aria-pressed={selectedFolderId === folder.id}
+                                                 style={{ opacity: disableFolderActions ? 0.5 : 1, pointerEvents: disableFolderActions ? 'none' : 'auto' }} // Disable when viewing archive or action in progress
+                                             >
+                                                 <i className="fa-solid fa-folder"></i>
+                                                 <span className="folder-name">{folder.name}</span>
+                                                 {/* Delete Folder Button */}
+                                                 <button
+                                                    className="folder-delete-btn"
+                                                    title={`Delete folder "${folder.name}"`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // Prevent folder selection
+                                                        onDeleteFolder(folder.id, folder.name);
+                                                    }}
+                                                    aria-label={`Delete folder ${folder.name}`}
+                                                    disabled={disableFolderActions}
+                                                 >
+                                                     <i className="fa-solid fa-trash-can"></i>
+                                                 </button>
+                                             </div>
+                                         );
+                                     })}
+                                     {folders.length === 0 && !loading && ( // Only show if not loading and empty
+                                         <p className="list-message">No folders created yet.</p>
+                                     )}
+                                 </>
+                             )}
+                        </div>
+                     </div>
+
+
+                    {/* --- Filters Section --- */}
+                    <div className="sidebar-controls">
+                        <input type="search" placeholder="Search notes..." className="search-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} aria-label="Search notes" disabled={!!actionInProgress}/>
+                         <select className="filter-select" value={archiveFilter} onChange={(e) => setArchiveFilter(e.target.value)} aria-label="Filter by status" disabled={!!actionInProgress}>
+                            <option value="active">Active Notes</option>
+                            <option value="archived">Archived Notes</option>
+                        </select>
+                         {/* Disable date/tag filters when viewing archive */}
+                        <select className="filter-select" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} aria-label="Filter by date modified" disabled={!!actionInProgress || archiveFilter === 'archived'}>
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="last7">Last 7 Days</option>
+                            <option value="last30">Last 30 Days</option>
+                        </select>
+                        <select className="filter-select" value={tagFilter} onChange={(e) => setTagFilter(e.target.value)} aria-label="Filter by tag" disabled={uniqueTags.length === 0 || !!actionInProgress || archiveFilter === 'archived'}>
+                            <option value="">All Tags</option>
+                            {uniqueTags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
+                        </select>
+                         <div className="note-count-display">{noteCountText}</div>
+                    </div>
+
+                    {/* --- Note List Section --- */}
+                    <div className="note-list-container">
+                        <div className="sidebar-message-area">
+                             <MessageBox type="error" message={error || sidebarError} />
+                        </div>
+                        <div className="note-list">
+                            {isLoadingSource ? (
+                               <LoadingSpinner message={archiveFilter === 'archived' ? "Loading Archived..." : "Loading Notes..."} />
+                             ) : filteredNotes.length > 0 ? (
+                                filteredNotes.map(note => {
+                                     const isNoteActionInProgress = actionInProgress && actionInProgress.endsWith(`-${note.id}`);
+                                     const isAnyActionInProgress = !!actionInProgress;
+                                     const disableActions = isAnyActionInProgress;
+
+                                     return (
+                                        <div // Note Item
+                                            key={note.id}
+                                            className={`note-item ${note.id === selectedNoteId ? 'selected' : ''} ${note.pinned && !note.archived ? 'pinned' : ''} ${note.archived ? 'archived' : ''}`} // Pinned only applies if not archived
+                                            onClick={() => !disableActions && handleNoteItemClick(note.id)} // Use toggle handler
+                                            onKeyPress={(e) => (e.key === 'Enter' || e.key === ' ') && !disableActions && handleNoteItemClick(note.id)} // Use toggle handler
+                                            role="button" tabIndex={0}
+                                            aria-current={note.id === selectedNoteId ? 'page' : undefined}
+                                        >
+                                             {/* Note Content Summary */}
+                                             <div className="note-item-header"><div className="note-item-title">{note.title || "Untitled Note"}</div></div>
+                                             <div className="note-item-meta"><span className="note-item-date">{formatDate(note.lastModified)}</span></div>
+                                             <div className="note-item-preview">{getPreview(note.content)}</div>
+                                             {note.tags?.length > 0 && (<div className="note-item-tags">{note.tags.slice(0, 3).map(t=><span key={t} className="tag-badge">{t}</span>)}{note.tags.length > 3 && <span className="tag-badge">+{note.tags.length - 3}</span>}</div>)}
+
+                                            {/* Note Actions */}
+                                            <div className="note-item-actions">
+                                                 <button
+                                                    className={`note-action-btn archive-btn`}
+                                                    title={note.archived ? 'Unarchive' : 'Archive'}
+                                                    onClick={(e) => handleArchiveClick(note, e)}
+                                                    aria-label={note.archived ? 'Unarchive Note' : 'Archive Note'}
+                                                    disabled={disableActions}
+                                                 >
+                                                    <i className={`fa-solid ${note.archived ? 'fa-box-open' : 'fa-box-archive'}`}></i>
+                                                 </button>
+
+                                                 {!note.archived && ( // Pin only for active notes
+                                                     <button
+                                                        className={`note-action-btn pin-btn ${note.pinned ? 'pinned' : 'unpinned'}`}
+                                                        title={note.pinned ? 'Unpin' : 'Pin'}
+                                                        onClick={(e) => handlePinClick(note, e)}
+                                                        aria-label={note.pinned ? 'Unpin Note' : 'Pin Note'}
+                                                        aria-pressed={note.pinned}
+                                                        disabled={disableActions}
+                                                     >
+                                                        <i className="fa-solid fa-thumbtack"></i>
+                                                     </button>
+                                                 )}
+
+                                                 <button
+                                                    className="note-action-btn delete-note-btn"
+                                                    title="Delete Permanently"
+                                                    onClick={(e) => handleDeleteClick(note.id, e)}
+                                                    aria-label="Delete Note Permanently"
+                                                    disabled={disableActions}
+                                                    >
+                                                     <i className="fa-solid fa-trash-can"></i>
+                                                 </button>
+                                            </div>
+                                        </div>
+                                     );
+                                })
+                            ) : (
+                               <p className="list-message">
+                                    {notesSource.length > 0 // Any notes in the source (folder/archived)?
+                                        ? "No notes match your current filters."
+                                        : (archiveFilter === 'archived'
+                                            ? "Your archive is empty."
+                                            : (selectedFolderId === FOLDER_ID_UNCATEGORIZED
+                                                ? "No uncategorized notes."
+                                                : (selectedFolderId !== FOLDER_ID_ALL
+                                                    ? "This folder is empty."
+                                                    : "No active notes yet. Create one!") // All notes is empty
+                                              )
+                                          )
+                                    }
+                                </p>
+                             )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- Editor Area (Handles View/Edit Toggle & Placeholders) ---
+        // No changes needed in EditorArea
+        function EditorArea({ note, folders, selectedNoteFolderName, onUpdateNote, onArchiveToggle, loading, isEditing, setIsEditing, shouldFocusTitle, actionInProgress }) {
+
+            const handleEditClick = () => setIsEditing(true);
+            const handleViewClick = () => setIsEditing(false);
+
+            // Show loading spinner only if loading AND no note is selected yet
+            if (loading && !note) {
+                return (
+                    <div className="editor-area">
+                        <LoadingSpinner message="Loading Note..." />
+                    </div>
+                );
+            }
+
+            // Case 1: No note selected (note is null/undefined after initial load)
+            if (!note && !loading) {
+                 return (
+                     <div className="editor-area editor-placeholder">
+                         <i className="fa-regular fa-pen-to-square"></i>
+                         <span>Select a note to view or edit.</span>
+                     </div>
+                 );
+            }
+
+             // Case 2: Selected note exists but is archived
+            if (note && note.archived) {
+                const isUnarchiving = actionInProgress === `unarchive-${note.id}`;
+                const disableUnarchive = !!actionInProgress;
+
+                 return (
+                     <div className="editor-area editor-placeholder">
+                        <i className="fa-solid fa-box-archive"></i>
+                        <span>This note is archived.</span>
+                         <button
+                            onClick={() => onArchiveToggle(note)}
+                            className="editor-placeholder-button unarchive-placeholder-btn"
+                            title="Unarchive Note"
+                            aria-label="Unarchive Note"
+                            disabled={disableUnarchive}
+                        >
+                             <i className="fa-solid fa-box-open"></i> Unarchive {isUnarchiving && <LoadingSpinner inline />}
+                         </button>
+                    </div>
+                );
+            }
+
+             // Case 3: Active note is selected - Show Header + Viewer/Editor
+             if (note && !note.archived) {
+                 const disableHeaderButtons = !!actionInProgress;
+                 return (
+                     <div className="editor-area">
+                         <div className="editor-header">
+                             {isEditing ? (
+                                  <button onClick={handleViewClick} className="editor-header-button view-mode-btn" title="Switch to View Mode" aria-label="Switch to view mode" disabled={disableHeaderButtons}>
+                                      <i className="fa-solid fa-eye"></i> View
+                                  </button>
+                             ) : (
+                                  <button onClick={handleEditClick} className="editor-header-button" title="Edit Note" aria-label="Edit note" disabled={disableHeaderButtons}>
+                                      <i className="fa-solid fa-pencil"></i> Edit
+                                  </button>
+                             )}
+                         </div>
+
+                         {isEditing ? (
+                             <Editor
+                                key={note.id} // Keep key as note.id for re-mount on switch
+                                note={note}
+                                folders={folders}
+                                onUpdateNote={onUpdateNote}
+                                shouldFocusTitle={shouldFocusTitle}
+                             />
+                         ) : (
+                             <NoteViewer
+                                key={note.id + "-view"} // Optional: different key for viewer if needed
+                                note={note}
+                                folderName={selectedNoteFolderName}
+                              />
+                         )}
+                     </div>
+                 );
+             }
+
+             // Fallback / Should not happen state
+             console.warn("EditorArea reached an unexpected state.", { note, loading, isEditing });
+             return <div className="editor-area"><LoadingSpinner message="Loading..." /></div>;
+        }
+
+        // --- Note Viewer Component (Read Only) ---
+        // No changes needed in NoteViewer
+        function NoteViewer({ note, folderName }) {
+            const createMarkup = () => ({ __html: note.content || '<p><em>No content.</em></p>' });
+
+            return (
+                <div className="note-viewer-container">
+                    <h1 className="note-viewer-title">{note.title || "Untitled Note"}</h1>
+
+                    {/* Meta section for Folder and Tags */}
+                     <div className="note-viewer-meta">
+                         {/* Display Folder if assigned */}
+                         {folderName && (
+                             <div className="note-viewer-folder" title={`In folder: ${folderName}`}>
+                                 <i className="fa-regular fa-folder"></i>
+                                 <span>{folderName}</span>
+                             </div>
+                         )}
+                          {/* Display Tags if any */}
+                         {note.tags && note.tags.length > 0 && (
+                            <div className="note-viewer-tags">
+                                {note.tags.map(tag => <span key={tag} className="tag-badge">{tag}</span>)}
+                            </div>
+                         )}
+                     </div>
+
+                    {/* Render Quill content */}
+                    <div className="ql-snow">
+                         <div
+                            className="note-viewer-content ql-editor" // Use ql-editor for consistent styling
+                            dangerouslySetInnerHTML={createMarkup()}
+                         />
+                     </div>
+                </div>
+            );
+        }
+
+        // --- Editor Component (Bug fixes from previous attempt retained) ---
+        function Editor({ note, folders, onUpdateNote, shouldFocusTitle }) {
+            const quillRef = useRef(null);
+            const quillInstance = useRef(null);
+            const currentNoteId = useRef(note.id);
+            const titleInputRef = useRef(null);
+
+            const [currentTitle, setCurrentTitle] = useState(note.title || "");
+            const [currentTags, setCurrentTags] = useState((note.tags || []).join(', '));
+            const [currentFolderId, setCurrentFolderId] = useState(note.folderId || '');
+            const [wordCount, setWordCount] = useState(0);
+
+            const debouncedTitle = useDebounce(currentTitle, 600);
+            const debouncedTags = useDebounce(currentTags, 900);
+
+            const contentDebounceTimeoutRef = useRef(null);
+            const CONTENT_DEBOUNCE_DELAY = 900;
+
+            const calculateWordCount = useCallback((quill) => {
+                if (!quill) return 0;
+                const text = quill.getText()?.trim() || '';
+                return text ? text.split(/\s+/).filter(Boolean).length : 0;
+            }, []);
+
+            // Effect 1: Initialize Quill & Setup Listeners
+             useEffect(() => {
+                // console.log(`[Editor Effect 1] Initializing for note ID: ${note.id}`);
+                currentNoteId.current = note.id;
+                let quill;
+                let textChangeHandler = null;
+
+                if (quillRef.current && !quillInstance.current) {
+                    quill = new Quill(quillRef.current, {
+                        theme: 'snow',
+                        modules: { toolbar: [
+                             [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'],
+                             [{ 'list': 'ordered'}, { 'list': 'bullet'}, { 'list': 'check' }],
+                             ['blockquote', 'code-block'], [{ 'indent': '-1'}, { 'indent': '+1' }],
+                             [{ 'color': [] }, { 'background': [] }], [{ 'align': [] }],
+                             ['link'], ['clean']
+                            ]},
+                        placeholder: 'Start writing your brilliant note...',
+                    });
+                    quillInstance.current = quill;
+
+                    textChangeHandler = (delta, oldDelta, source) => {
+                        const currentQuill = quillInstance.current;
+                        if (!currentQuill) return;
+                        setWordCount(calculateWordCount(currentQuill));
+                        if (source === 'user') {
+                            const htmlContent = currentQuill.root.innerHTML;
+                            clearTimeout(contentDebounceTimeoutRef.current);
+                            contentDebounceTimeoutRef.current = setTimeout(() => {
+                                if (currentNoteId.current === note.id) {
+                                    onUpdateNote({ id: note.id, content: htmlContent }, 'update-content');
+                                }
+                            }, CONTENT_DEBOUNCE_DELAY);
+                        }
+                    };
+                    quill.on('text-change', textChangeHandler);
+
+                    const initialContent = note.content || '<p><br></p>';
+                    quill.clipboard.dangerouslyPasteHTML(0, initialContent, 'silent');
+                    setWordCount(calculateWordCount(quill));
+                }
+
+                return () => {
+                    // console.log(`[Editor Effect 1 Cleanup] Cleaning up for note ID: ${note.id}`);
+                    clearTimeout(contentDebounceTimeoutRef.current);
+                     // Clean up listener if handler was created
+                     if (quillInstance.current && textChangeHandler) {
+                         try { // Add try-catch as Quill might throw if already destroyed
+                            // quillInstance.current.off('text-change', textChangeHandler); // Commented out - might cause issues if key prop ensures clean slate
+                         } catch (e) { console.warn("Error removing text-change listener:", e); }
+                     }
+                };
+            }, [note.id, calculateWordCount, onUpdateNote]);
+
+
+            // Effect 2: Synchronize All Props
+            useEffect(() => {
+                // console.log(`[Editor Effect 2] Syncing props for note ID: ${note.id}`);
+                const quill = quillInstance.current;
+
+                // Sync Title, Tags, Folder
+                const incomingTitle = note.title || "";
+                if (incomingTitle !== currentTitle) setCurrentTitle(incomingTitle);
+                const incomingTagsString = (note.tags || []).join(', ');
+                if (incomingTagsString !== currentTags) setCurrentTags(incomingTagsString);
+                const incomingFolderId = note.folderId || '';
+                if (incomingFolderId !== currentFolderId) setCurrentFolderId(incomingFolderId);
+
+                // Handle focus request
+                if (shouldFocusTitle && titleInputRef.current) {
+                    // console.log(`[Editor Effect 2] Focusing title for note ID: ${note.id}`);
+                    titleInputRef.current.focus();
+                    titleInputRef.current.select();
+                }
+
+                // Content Synchronization Check (with focus check)
+                if (quill) {
+                    const currentEditorHTML = quill.root.innerHTML;
+                    const incomingContentHTML = note.content || '<p><br></p>';
+                    if (incomingContentHTML !== currentEditorHTML) {
+                        const hasFocus = quill.hasFocus();
+                        if (!hasFocus) {
+                            // console.log(`[Editor Effect 2] Content discrepancy detected for note ${note.id} (Editor NOT focused). Updating Quill.`);
+                            let selectionIndex = null;
+                             try { const selection = quill.getSelection(); if (selection) selectionIndex = selection.index; } catch (e) {}
+                            quill.clipboard.dangerouslyPasteHTML(0, incomingContentHTML, 'silent');
+                            setWordCount(calculateWordCount(quill));
+                            try {
+                                const newLength = quill.getLength();
+                                const indexToRestore = (selectionIndex !== null && selectionIndex <= newLength) ? selectionIndex : newLength;
+                                quill.setSelection(indexToRestore, 0, 'silent');
+                             } catch (e) {}
+                        } // else { console.log(`[Editor Effect 2] Content discrepancy detected for note ${note.id} BUT editor HAS focus. Skipping programmatic update.`); }
+                    }
+                }
+            }, [
+                note.title, note.tags, note.folderId, note.content, note.id,
+                shouldFocusTitle, calculateWordCount,
+                currentTitle, currentTags, currentFolderId
+            ]);
+
+
+            // Effect 3: Save Debounced Title
+            useEffect(() => {
+                if (debouncedTitle !== note.title && currentNoteId.current === note.id) {
+                    // console.log(`[Editor Effect 3] Saving debounced title: "${debouncedTitle}" for note ID: ${note.id}`);
+                    onUpdateNote({ id: note.id, title: debouncedTitle }, 'update-title');
+                }
+            }, [debouncedTitle, note.title, note.id, onUpdateNote]);
+
+            // Effect 4: Save Debounced Tags
+            useEffect(() => {
+                 const newTagsArray = debouncedTags.split(',').map(t => t.trim().slice(0, 30)).filter(t => t).filter((v, i, a) => a.indexOf(v) === i);
+                 const originalTags = note.tags || [];
+                if (JSON.stringify(newTagsArray) !== JSON.stringify(originalTags) && currentNoteId.current === note.id) {
+                     // console.log(`[Editor Effect 4] Saving debounced tags for note ID: ${note.id}`);
+                    onUpdateNote({ id: note.id, tags: newTagsArray }, 'update-tags');
+                }
+            }, [debouncedTags, note.tags, note.id, onUpdateNote]);
+
+            // Folder Change Handler
+            const handleFolderChange = (event) => {
+                 const newFolderId = event.target.value;
+                 setCurrentFolderId(newFolderId);
+                 if (currentNoteId.current === note.id) {
+                    // console.log(`[Editor Folder Change] Saving folder change for note ID: ${note.id}`);
+                    onUpdateNote({ id: note.id, folderId: newFolderId || null }, 'update-folder');
+                 }
+            };
+
+
+            return (
+                 <div className="editor-container">
+                     <input
+                         ref={titleInputRef}
+                         type="text" className="note-title-input" value={currentTitle}
+                         onChange={(e) => setCurrentTitle(e.target.value)}
+                         placeholder="Note Title" aria-label="Note Title"
+                     />
+                      <div className="editor-meta-inputs">
+                          <div className="folder-editor">
+                             <label htmlFor={`folder-select-${note.id}`} title="Folder"><i className="fa-regular fa-folder"></i></label>
+                             <select
+                                 id={`folder-select-${note.id}`}
+                                 className="folder-select"
+                                 value={currentFolderId}
+                                 onChange={handleFolderChange}
+                                 aria-label="Assign to folder"
+                             >
+                                  <option value="">Uncategorized</option>
+                                  {folders.sort((a,b) => a.name.localeCompare(b.name)).map(folder => (
+                                     <option key={folder.id} value={folder.id}>{folder.name}</option>
+                                 ))}
+                              </select>
+                          </div>
+                          <div className="tags-editor">
+                              <label htmlFor={`tags-input-${note.id}`} title="Tags"><i className="fa-solid fa-tags"></i></label>
+                              <input
+                                  id={`tags-input-${note.id}`}
+                                  type="text"
+                                  className="tags-input"
+                                  value={currentTags}
+                                  onChange={(e) => setCurrentTags(e.target.value)}
+                                  placeholder="Add tags, comma-separated"
+                                  aria-label="Note Tags (comma-separated)"
+                               />
+                          </div>
+                      </div>
+
+                    <div className="quill-editor-wrapper">
+                       <div ref={quillRef}></div>
+                    </div>
+                    <div className="editor-footer">
+                        <span>Words: {wordCount}</span>
+                     </div>
+                 </div>
+            );
+        }
+
+        // --- Render App ---
+        if (firebaseApp) {
+             ReactDOM.render(<React.StrictMode><App /></React.StrictMode>, document.getElementById('root'));
+        } else {
+             console.error("App rendering skipped due to Firebase initialization failure.");
+             // Error message is already shown in the #root div by the init block
+        }
+
+    </script>
+</body>
+</html>
