@@ -16,7 +16,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Modernized & Themed Inline CSS -->
+    <!-- Modernized & Themed Inline CSS (No changes here) -->
     <style>
         :root {
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
@@ -681,7 +681,6 @@
             .editor-footer { padding: 0.4rem 0; font-size: 0.75rem; }
             .auth-container { padding: 2rem 1.5rem; }
         }
-
     </style>
 </head>
 <body>
@@ -875,7 +874,7 @@
 
             return (
                 <div className="auth-container">
-                    <h2>{isLogin ? 'Login to NOT3S' : 'Sign Up for NOT3S'}</h2>
+                    <h2>{isLogin ? 'Login to Sleek Notes' : 'Sign Up for Sleek Notes'}</h2>
                     {/* Display Auth Error */}
                     <MessageBox type="error" message={error} />
 
@@ -1176,7 +1175,7 @@
                  }
              }, [notesCollectionRef, allActiveNotes, clearError, setError]);
 
-             // *** NEW: Handler for deleting a folder ***
+             // *** Handler for deleting a folder ***
              const handleDeleteFolder = useCallback(async (folderId, folderName) => {
                  if (!folderId || !folderName) return;
 
@@ -1369,7 +1368,7 @@
         function Sidebar({
             notes, folders, selectedNoteId, selectedFolderId, loading, error, currentTheme, notesCollectionRef, actionInProgress,
             onAddNote, onAddFolder, onDeleteNote, onDeleteFolder, onArchiveToggle, onSelectNote, onSelectFolder, onUpdateNote, onLogout, toggleTheme,
-            setErrorNotes, setErrorFolders, clearErrorNotes, clearErrorFolders // Added folder error handlers
+            setErrorNotes, setErrorFolders, clearErrorNotes, clearErrorFolders // Error handlers passed as props
         }) {
              const [searchTerm, setSearchTerm] = useState("");
              const [dateFilter, setDateFilter] = useState("all");
@@ -1381,31 +1380,30 @@
 
              const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-             // Effect to clear local sidebar errors if the global error is cleared
+             // Effect to clear local sidebar errors if the global error is cleared or filter changes
              useEffect(() => {
-                 if (!error) {
+                 if (!error || archiveFilter === 'active') { // Clear if global error clears OR switching away from archive
                     setSidebarError(null);
                  }
-             }, [error]);
+             }, [error, archiveFilter]); // Depend on global error and filter
 
-             // Fetch Archived Notes Effect when filter changes to 'archived'
+             // --- **REFACTORED EFFECTS** ---
+
+             // Effect 1: Fetch/Clear Archived Notes based on filter
              useEffect(() => {
                  let unsubscribe = () => {};
-                 const updateCache = (notes) => { window.archivedNotesCache = notes; }; // Cache for delete confirmation
+                 const updateCache = (notes) => { window.archivedNotesCache = notes; };
 
                  if (archiveFilter === 'archived') {
                      setLoadingArchived(true);
-                     setSidebarError(null);
-                     clearErrorNotes(); // Clear global note errors when switching filters
-                     clearErrorFolders(); // Clear folder errors too
-                     onSelectFolder(FOLDER_ID_ALL); // Reset folder selection when viewing archive
-                     console.log("[Sidebar Effect] Fetching archived notes...");
+                     // Don't clear global/sidebar errors here, let Effect 2 handle it
+                     console.log("[Sidebar Effect 1] Fetching archived notes...");
                      const query = notesCollectionRef
                          .where('archived', '==', true)
                          .orderBy('lastModified', 'desc');
 
                      unsubscribe = query.onSnapshot(snapshot => {
-                         console.log("[Sidebar Effect] Archived notes snapshot RECEIVED");
+                         console.log("[Sidebar Effect 1] Archived notes snapshot RECEIVED successfully.");
                          const fetched = snapshot.docs.map(doc => ({
                              id: doc.id,
                              ...doc.data(),
@@ -1416,32 +1414,59 @@
                          setArchivedNotes(fetched);
                          setLoadingArchived(false);
                          updateCache(fetched);
+                         setSidebarError(null); // Clear local error on successful fetch
                      }, err => {
-                         console.error("[Sidebar Effect] Error fetching archived notes:", err);
-                         if (err.code === 'failed-precondition' && err.message.includes('index')) {
-                             setSidebarError(`Firestore index missing for archived notes. Please create it.`);
-                         } else {
-                             setSidebarError(`Could not load archived notes: ${err.message}`);
+                         console.error("[Sidebar Effect 1] Error fetching archived notes:", err);
+                         let userErrorMessage = `Could not load archived notes: ${err.message}`;
+                         if (err.code === 'failed-precondition') {
+                             userErrorMessage = "Could not load archived notes. Firestore index might be missing (check console).";
+                             console.warn("Firestore index likely missing for archived notes query.");
                          }
-                         setErrorNotes(`Could not load archived notes: ${err.message}`); // Also set global error
+                         // Set LOCAL error state for display within sidebar message area
+                         setSidebarError(userErrorMessage);
+                         // We will NOT set the global error (setErrorNotes) here anymore to avoid potential loops
+                         // setErrorNotes(userErrorMessage);
                          setLoadingArchived(false);
+                         setArchivedNotes([]);
                          updateCache([]);
                      });
                  } else {
-                     // Switching back to active notes view
-                     console.log("[Sidebar Effect] Switched to active notes view.");
+                     // Switching back to active notes view - clear local state
+                     console.log("[Sidebar Effect 1] Switched to active notes view. Clearing archive data.");
                      setArchivedNotes([]);
                      setLoadingArchived(false);
                      updateCache([]);
-                     if (sidebarError) setSidebarError(null); // Clear local archive error
-                     // Global errors are cleared by the main dashboard effect
+                     // Don't clear sidebarError here, let the other effect handle it based on global error state
                  }
+
                  return () => {
-                     console.log("[Sidebar Effect] Cleanup listener for archive filter.");
+                     console.log("[Sidebar Effect 1] Cleanup listener.");
                      unsubscribe();
                      updateCache([]);
                  };
-             }, [archiveFilter, notesCollectionRef, setErrorNotes, clearErrorNotes, clearErrorFolders, onSelectFolder]); // Added clearErrorFolders
+             // This effect ONLY depends on the filter and the collection reference
+             }, [archiveFilter, notesCollectionRef]); // <<< Minimal dependencies for data fetching
+
+
+             // Effect 2: Handle Side Effects of Archive Filter Change (Clearing errors, Selecting folder)
+             useEffect(() => {
+                 // This effect runs ONLY when archiveFilter changes value.
+                 if (archiveFilter === 'archived') {
+                     console.log("[Sidebar Effect 2] Archive filter activated. Clearing errors & selecting 'All Notes'.");
+                     // Call the callbacks to update parent state. It's okay to use the potentially
+                     // "stale" callbacks from the previous render cycle here, as the parent will
+                     // re-render anyway due to the state updates these cause, providing fresh callbacks
+                     // for the *next* render.
+                     clearErrorNotes();
+                     clearErrorFolders();
+                     onSelectFolder(FOLDER_ID_ALL); // Reset folder selection when viewing archive
+                 }
+                 // No specific action needed when switching back to 'active' here.
+             // *** FIX: Only depend on archiveFilter ***
+             }, [archiveFilter]); // <<< REMOVED CALLBACKS FROM DEPENDENCY ARRAY
+
+             // --- **END OF REFACTORED EFFECTS** ---
+
 
             // Determine the source of notes based on the archive filter
              // If viewing archived, use archivedNotes. If viewing active, use the 'notes' prop (which is already folder-filtered)
@@ -1520,12 +1545,14 @@
 
                 const areFiltersActive = debouncedSearchTerm || tagFilter || (dateFilter !== 'all' && archiveFilter === 'active'); // Date filter doesn't apply to archive view for count display
 
-                 if (totalSourceCount === 0) {
+                 if (totalSourceCount === 0 && !isLoadingSource) { // Check isLoadingSource here
                      return `No ${context.toLowerCase()} notes`;
                  } else if (count === 0 && areFiltersActive) {
                      return `0 matching notes ${context === 'All' || context === 'Archived' ? '' : context}`; // Don't repeat context if "All" or "Archived"
                  } else if (count === 0 && !areFiltersActive) {
-                     return `No notes ${context === 'All' || context === 'Archived' ? '' : context}`;
+                     // This condition might overlap with the first one if totalSourceCount is 0
+                     // Handled by the first condition now.
+                       return `No notes ${context === 'All' || context === 'Archived' ? '' : context}`;
                  } else {
                      const filterText = areFiltersActive ? ' matching' : '';
                      return `${count}${filterText} ${type === 'Notes' ? `note${count === 1 ? '' : 's'}` : type} ${context === 'All' || context === 'Archived' ? '' : context}`;
@@ -1557,6 +1584,7 @@
                  onSelectNote(noteId); // Parent now handles the toggle logic
              }, [onSelectNote]); // Only depends on the callback itself
 
+            // Rest of the Sidebar JSX remains the same...
             return (
                 <div className="sidebar">
                     <div className="sidebar-header">
@@ -1677,7 +1705,9 @@
                     {/* --- Note List Section --- */}
                     <div className="note-list-container">
                         <div className="sidebar-message-area">
-                             <MessageBox type="error" message={error || sidebarError} />
+                             {/* Display local sidebar error OR the global error if present */}
+                             {/* Prioritize sidebarError for archive-specific issues */}
+                             <MessageBox type="error" message={sidebarError || error} />
                         </div>
                         <div className="note-list">
                             {isLoadingSource ? (
@@ -1694,7 +1724,7 @@
                                             className={`note-item ${note.id === selectedNoteId ? 'selected' : ''} ${note.pinned && !note.archived ? 'pinned' : ''} ${note.archived ? 'archived' : ''}`} // Pinned only applies if not archived
                                             onClick={() => !disableActions && handleNoteItemClick(note.id)} // Use toggle handler
                                             onKeyPress={(e) => (e.key === 'Enter' || e.key === ' ') && !disableActions && handleNoteItemClick(note.id)} // Use toggle handler
-                                            role="button" tabIndex={0}
+                                            role="button" tabIndex={disableActions ? -1 : 0} // Make non-interactive when disabled
                                             aria-current={note.id === selectedNoteId ? 'page' : undefined}
                                         >
                                              {/* Note Content Summary */}
@@ -1761,7 +1791,7 @@
                     </div>
                 </div>
             );
-        }
+        } // End of Sidebar Component
 
         // --- Editor Area (Handles View/Edit Toggle & Placeholders) ---
         // No changes needed in EditorArea
@@ -1889,7 +1919,7 @@
             );
         }
 
-        // --- Editor Component (Bug fixes from previous attempt retained) ---
+        // --- Editor Component (Bug fixes applied) ---
         function Editor({ note, folders, onUpdateNote, shouldFocusTitle }) {
             const quillRef = useRef(null);
             const quillInstance = useRef(null);
@@ -1942,8 +1972,11 @@
                             const htmlContent = currentQuill.root.innerHTML;
                             clearTimeout(contentDebounceTimeoutRef.current);
                             contentDebounceTimeoutRef.current = setTimeout(() => {
+                                // Check note ID *again* inside timeout in case user switched notes quickly
                                 if (currentNoteId.current === note.id) {
                                     onUpdateNote({ id: note.id, content: htmlContent }, 'update-content');
+                                } else {
+                                     console.warn(`[Editor Debounce] Stale content update prevented for note ${note.id}. Current note is ${currentNoteId.current}`);
                                 }
                             }, CONTENT_DEBOUNCE_DELAY);
                         }
@@ -1951,8 +1984,9 @@
                     quill.on('text-change', textChangeHandler);
 
                     const initialContent = note.content || '<p><br></p>';
+                    // Use source 'silent' to avoid triggering text-change handler during init
                     quill.clipboard.dangerouslyPasteHTML(0, initialContent, 'silent');
-                    setWordCount(calculateWordCount(quill));
+                    setWordCount(calculateWordCount(quill)); // Calculate initial count
                 }
 
                 return () => {
@@ -1961,62 +1995,94 @@
                      // Clean up listener if handler was created
                      if (quillInstance.current && textChangeHandler) {
                          try { // Add try-catch as Quill might throw if already destroyed
-                            // quillInstance.current.off('text-change', textChangeHandler); // Commented out - might cause issues if key prop ensures clean slate
+                            quillInstance.current.off('text-change', textChangeHandler);
                          } catch (e) { console.warn("Error removing text-change listener:", e); }
                      }
+                     // Reset instance ref on cleanup (important if key prop wasn't sufficient)
+                     // quillInstance.current = null; // Optional: If re-mount with key is guaranteed, this might not be needed
                 };
+             // Only re-initialize Quill when note.id changes
             }, [note.id, calculateWordCount, onUpdateNote]);
 
 
-            // Effect 2: Synchronize All Props
+            // Effect 2: Synchronize Props (Title, Tags, Folder, Content if not focused) and Handle Focus
             useEffect(() => {
                 // console.log(`[Editor Effect 2] Syncing props for note ID: ${note.id}`);
                 const quill = quillInstance.current;
 
-                // Sync Title, Tags, Folder
+                // Sync Title (Update local state if prop changes)
                 const incomingTitle = note.title || "";
-                if (incomingTitle !== currentTitle) setCurrentTitle(incomingTitle);
-                const incomingTagsString = (note.tags || []).join(', ');
-                if (incomingTagsString !== currentTags) setCurrentTags(incomingTagsString);
-                const incomingFolderId = note.folderId || '';
-                if (incomingFolderId !== currentFolderId) setCurrentFolderId(incomingFolderId);
+                if (incomingTitle !== currentTitle) {
+                    // console.log(`[Editor Effect 2] Syncing title for ${note.id}. Prop: "${incomingTitle}", State: "${currentTitle}"`);
+                    setCurrentTitle(incomingTitle);
+                }
 
-                // Handle focus request
+                // Sync Tags (Update local state if prop changes)
+                const incomingTagsString = (note.tags || []).join(', ');
+                if (incomingTagsString !== currentTags) {
+                    // console.log(`[Editor Effect 2] Syncing tags for ${note.id}.`);
+                    setCurrentTags(incomingTagsString);
+                }
+
+                // Sync Folder (Update local state if prop changes)
+                const incomingFolderId = note.folderId || '';
+                if (incomingFolderId !== currentFolderId) {
+                    // console.log(`[Editor Effect 2] Syncing folder for ${note.id}.`);
+                    setCurrentFolderId(incomingFolderId);
+                }
+
+                // Handle focus request (only if flag is set)
                 if (shouldFocusTitle && titleInputRef.current) {
                     // console.log(`[Editor Effect 2] Focusing title for note ID: ${note.id}`);
                     titleInputRef.current.focus();
                     titleInputRef.current.select();
+                    // Reset flag? Depends if parent resets it. Assume parent handles it.
                 }
 
-                // Content Synchronization Check (with focus check)
+                // Content Synchronization Check (only if editor doesn't have focus)
                 if (quill) {
                     const currentEditorHTML = quill.root.innerHTML;
                     const incomingContentHTML = note.content || '<p><br></p>';
+                    // Check if content actually differs
                     if (incomingContentHTML !== currentEditorHTML) {
                         const hasFocus = quill.hasFocus();
                         if (!hasFocus) {
                             // console.log(`[Editor Effect 2] Content discrepancy detected for note ${note.id} (Editor NOT focused). Updating Quill.`);
                             let selectionIndex = null;
-                             try { const selection = quill.getSelection(); if (selection) selectionIndex = selection.index; } catch (e) {}
-                            quill.clipboard.dangerouslyPasteHTML(0, incomingContentHTML, 'silent');
-                            setWordCount(calculateWordCount(quill));
+                            // Try to preserve cursor position, but might be imperfect
+                            try { const selection = quill.getSelection(); if (selection) selectionIndex = selection.index; } catch (e) {}
+                            quill.clipboard.dangerouslyPasteHTML(0, incomingContentHTML, 'silent'); // Use silent source
+                            setWordCount(calculateWordCount(quill)); // Recalculate word count after update
                             try {
+                                // Restore selection if possible
                                 const newLength = quill.getLength();
-                                const indexToRestore = (selectionIndex !== null && selectionIndex <= newLength) ? selectionIndex : newLength;
+                                const indexToRestore = (selectionIndex !== null && selectionIndex <= newLength) ? selectionIndex : newLength -1; // Go to end if invalid
                                 quill.setSelection(indexToRestore, 0, 'silent');
-                             } catch (e) {}
-                        } // else { console.log(`[Editor Effect 2] Content discrepancy detected for note ${note.id} BUT editor HAS focus. Skipping programmatic update.`); }
+                             } catch (e) { /* Ignore selection errors */ }
+                        } else {
+                            // console.log(`[Editor Effect 2] Content discrepancy detected for note ${note.id} BUT editor HAS focus. Skipping programmatic update to avoid losing user input.`);
+                        }
+                    } else {
+                       // Ensure word count is accurate even if content didn't change (e.g., on initial load/sync)
+                       const currentWordCount = calculateWordCount(quill);
+                       if (currentWordCount !== wordCount) {
+                           setWordCount(currentWordCount);
+                       }
                     }
                 }
             }, [
-                note.title, note.tags, note.folderId, note.content, note.id,
-                shouldFocusTitle, calculateWordCount,
-                currentTitle, currentTags, currentFolderId
+                // *** CRITICAL FIX: Only depend on incoming props and focus flag ***
+                note.id, note.title, note.tags, note.folderId, note.content, // Incoming data
+                shouldFocusTitle, // Focus trigger
+                calculateWordCount // Utility function (stable)
+                // Removed: currentTitle, currentTags, currentFolderId
             ]);
 
 
             // Effect 3: Save Debounced Title
             useEffect(() => {
+                // Only save if the debounced title is different from the *original prop* title
+                // AND the currentNoteId still matches (prevent stale saves)
                 if (debouncedTitle !== note.title && currentNoteId.current === note.id) {
                     // console.log(`[Editor Effect 3] Saving debounced title: "${debouncedTitle}" for note ID: ${note.id}`);
                     onUpdateNote({ id: note.id, title: debouncedTitle }, 'update-title');
@@ -2025,31 +2091,34 @@
 
             // Effect 4: Save Debounced Tags
             useEffect(() => {
-                 const newTagsArray = debouncedTags.split(',').map(t => t.trim().slice(0, 30)).filter(t => t).filter((v, i, a) => a.indexOf(v) === i);
+                 const newTagsArray = debouncedTags.split(',').map(t => t.trim().slice(0, 30)).filter(t => t).filter((v, i, a) => a.indexOf(v) === i); // Clean up tags
                  const originalTags = note.tags || [];
+                 // Only save if tags actually changed and note ID matches
                 if (JSON.stringify(newTagsArray) !== JSON.stringify(originalTags) && currentNoteId.current === note.id) {
                      // console.log(`[Editor Effect 4] Saving debounced tags for note ID: ${note.id}`);
                     onUpdateNote({ id: note.id, tags: newTagsArray }, 'update-tags');
                 }
             }, [debouncedTags, note.tags, note.id, onUpdateNote]);
 
-            // Folder Change Handler
+            // Folder Change Handler (Save immediately)
             const handleFolderChange = (event) => {
                  const newFolderId = event.target.value;
-                 setCurrentFolderId(newFolderId);
+                 setCurrentFolderId(newFolderId); // Update local state immediately for responsiveness
+                 // Save if the note hasn't changed since the editor mounted
                  if (currentNoteId.current === note.id) {
                     // console.log(`[Editor Folder Change] Saving folder change for note ID: ${note.id}`);
-                    onUpdateNote({ id: note.id, folderId: newFolderId || null }, 'update-folder');
+                    onUpdateNote({ id: note.id, folderId: newFolderId || null }, 'update-folder'); // Send null if "Uncategorized" is chosen
                  }
             };
 
 
             return (
                  <div className="editor-container">
+                     {/* Title input IS editable via value/onChange with local state */}
                      <input
                          ref={titleInputRef}
                          type="text" className="note-title-input" value={currentTitle}
-                         onChange={(e) => setCurrentTitle(e.target.value)}
+                         onChange={(e) => setCurrentTitle(e.target.value)} // Updates local state directly
                          placeholder="Note Title" aria-label="Note Title"
                      />
                       <div className="editor-meta-inputs">
@@ -2058,11 +2127,11 @@
                              <select
                                  id={`folder-select-${note.id}`}
                                  className="folder-select"
-                                 value={currentFolderId}
-                                 onChange={handleFolderChange}
+                                 value={currentFolderId} // Controlled component
+                                 onChange={handleFolderChange} // Triggers state update and save
                                  aria-label="Assign to folder"
                              >
-                                  <option value="">Uncategorized</option>
+                                  <option value="">Uncategorized</option> { /* Value is empty string for no folder */ }
                                   {folders.sort((a,b) => a.name.localeCompare(b.name)).map(folder => (
                                      <option key={folder.id} value={folder.id}>{folder.name}</option>
                                  ))}
@@ -2074,8 +2143,8 @@
                                   id={`tags-input-${note.id}`}
                                   type="text"
                                   className="tags-input"
-                                  value={currentTags}
-                                  onChange={(e) => setCurrentTags(e.target.value)}
+                                  value={currentTags} // Controlled component
+                                  onChange={(e) => setCurrentTags(e.target.value)} // Updates local state directly
                                   placeholder="Add tags, comma-separated"
                                   aria-label="Note Tags (comma-separated)"
                                />
@@ -2083,9 +2152,11 @@
                       </div>
 
                     <div className="quill-editor-wrapper">
+                       {/* Quill is initialized in Effect 1 */}
                        <div ref={quillRef}></div>
                     </div>
                     <div className="editor-footer">
+                        {/* Word count is updated via state */}
                         <span>Words: {wordCount}</span>
                      </div>
                  </div>
